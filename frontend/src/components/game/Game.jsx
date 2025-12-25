@@ -55,22 +55,16 @@ export default function Game() {
       
       const client = getAuthenticatedClient();
       
-      // GraphQL ID type is a string, but backend expects Long
-      // Try to parse as number first, if it fails, show error (backend uses numeric IDs)
-      const gameIdNum = parseInt(gameId, 10);
-      if (isNaN(gameIdNum)) {
-        console.error('Invalid game ID format:', gameId, '- Expected numeric ID');
-        throw new Error(`Invalid game ID format: ${gameId}. Expected numeric ID. Please select a game from the list.`);
-      }
+      // GraphQL ID type is a string - pass it as-is, backend will parse it
+      // Backend now accepts String IDs and converts them to Long internally
+      console.log('Initializing game with ID:', gameId);
       
-      console.log('Initializing game with ID:', gameIdNum, '(original:', gameId, ')');
-      
-        // Try to get existing game state
-        try {
-          console.log('Trying to get existing game state...');
-          const stateData = await client.request(GET_GAME_STATE_QUERY, {
-            gameId: gameIdNum
-          });
+      // Try to get existing game state
+      try {
+        console.log('Trying to get existing game state...');
+        const stateData = await client.request(GET_GAME_STATE_QUERY, {
+          gameId: gameId
+        });
         console.log('Got existing game state:', stateData);
         setGameState(stateData.getGameState);
         updatePlayerPositionFromState(stateData.getGameState);
