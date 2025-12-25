@@ -21,7 +21,7 @@ import MCQOverlay from './MCQOverlay';
 export default function Game() {
   const { gameId } = useParams();
   const navigate = useNavigate();
-  const { getAuthenticatedClient } = useAuth();
+  const { getAuthenticatedClient, user, token } = useAuth();
   
   const [gameState, setGameState] = useState(null);
   const [playerPos, setPlayerPos] = useState({ x: 400, y: 300 });
@@ -38,6 +38,19 @@ export default function Game() {
   
   const initGame = async () => {
     try {
+      // Check authentication
+      if (!token) {
+        throw new Error('Not authenticated. Please log in again.');
+      }
+      if (!user) {
+        throw new Error('User information not available. Please log in again.');
+      }
+      if (user.role !== 'PLAYER' && user.role !== 'ADMIN') {
+        throw new Error(`Invalid user role: ${user.role}. Expected PLAYER or ADMIN.`);
+      }
+      
+      console.log('User authenticated:', user.username, 'Role:', user.role, 'Token present:', !!token);
+      
       const client = getAuthenticatedClient();
       
       // Convert gameId to number (GraphQL expects ID which is Long)
@@ -46,19 +59,25 @@ export default function Game() {
         throw new Error(`Invalid game ID: ${gameId}`);
       }
       
+      console.log('Initializing game with ID:', gameIdNum);
+      
       // Try to get existing game state
       try {
+        console.log('Trying to get existing game state...');
         const stateData = await client.request(GET_GAME_STATE_QUERY, {
           gameId: gameIdNum
         });
+        console.log('Got existing game state:', stateData);
         setGameState(stateData.getGameState);
         updatePlayerPositionFromState(stateData.getGameState);
       } catch (e) {
-        console.log('No existing progress, starting new game:', e.message);
+        console.log('No existing progress, starting new game. Error:', e);
         // No existing progress, start new game
+        console.log('Starting new game...');
         const startData = await client.request(START_GAME_MUTATION, {
           gameId: gameIdNum
         });
+        console.log('Game started:', startData);
         setGameState(startData.startGame);
         updatePlayerPositionFromState(startData.startGame);
       }
@@ -66,6 +85,7 @@ export default function Game() {
       setLoading(false);
     } catch (err) {
       console.error('Error initializing game:', err);
+      console.error('Full error object:', JSON.stringify(err, null, 2));
       const errorMessage = err.response?.errors?.[0]?.message || 
                           err.message || 
                           'Failed to load game';
