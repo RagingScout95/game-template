@@ -57,6 +57,11 @@ export const START_GAME_MUTATION = gql`
         id
         name
         description
+        mcq {
+          id
+          question
+          options
+        }
       }
       currentStep {
         id
