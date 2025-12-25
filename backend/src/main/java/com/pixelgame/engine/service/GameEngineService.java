@@ -39,8 +39,22 @@ public class GameEngineService {
         }
         
         // Check if player already has progress
-        PlayerProgress progress = progressRepository.findByUserIdAndGameId(user.getId(), gameId)
-                .orElse(null);
+        // Handle duplicates by getting the most recent one
+        List<PlayerProgress> progressList = progressRepository.findAllByUserIdAndGameIdOrderByUpdatedAtDesc(user.getId(), gameId);
+        PlayerProgress progress = null;
+        
+        if (!progressList.isEmpty()) {
+            progress = progressList.get(0); // Get most recent
+            // If there are duplicates, delete the older ones
+            if (progressList.size() > 1) {
+                log.warn("Found {} duplicate progress records for user {} and game {}. Keeping most recent (ID: {})", 
+                        progressList.size(), user.getId(), gameId, progress.getId());
+                for (int i = 1; i < progressList.size(); i++) {
+                    progressRepository.delete(progressList.get(i));
+                    log.info("Deleted duplicate progress record ID: {}", progressList.get(i).getId());
+                }
+            }
+        }
         
         if (progress == null) {
             // Create new progress
@@ -94,13 +108,21 @@ public class GameEngineService {
      */
     @Transactional(readOnly = true)
     public GameState getGameState(User user, Long gameId) {
-        PlayerProgress progress = progressRepository.findByUserIdAndGameId(user.getId(), gameId)
-                .orElse(null);
+        // Handle duplicates by getting the most recent one
+        List<PlayerProgress> progressList = progressRepository.findAllByUserIdAndGameIdOrderByUpdatedAtDesc(user.getId(), gameId);
         
-        if (progress == null) {
+        if (progressList.isEmpty()) {
             // No progress exists, return null or throw exception
             // Frontend will catch this and call startGame
             throw new RuntimeException("No progress found. Please start the game first.");
+        }
+        
+        PlayerProgress progress = progressList.get(0); // Get most recent
+        
+        // If there are duplicates, log warning (cleanup will happen in startGame)
+        if (progressList.size() > 1) {
+            log.warn("Found {} duplicate progress records for user {} and game {}. Using most recent (ID: {})", 
+                    progressList.size(), user.getId(), gameId, progress.getId());
         }
         
         // Refresh to ensure entity is attached to current session
@@ -118,8 +140,11 @@ public class GameEngineService {
      */
     @Transactional
     public GameState advanceToNextStep(User user, Long gameId) {
-        PlayerProgress progress = progressRepository.findByUserIdAndGameId(user.getId(), gameId)
-                .orElseThrow(() -> new RuntimeException("No progress found"));
+        List<PlayerProgress> progressList = progressRepository.findAllByUserIdAndGameIdOrderByUpdatedAtDesc(user.getId(), gameId);
+        if (progressList.isEmpty()) {
+            throw new RuntimeException("No progress found");
+        }
+        PlayerProgress progress = progressList.get(0);
         
         if (progress.getCurrentScenario() == null) {
             throw new RuntimeException("No active scenario");
@@ -156,8 +181,11 @@ public class GameEngineService {
      */
     @Transactional
     public GameState advanceToNextScenario(User user, Long gameId) {
-        PlayerProgress progress = progressRepository.findByUserIdAndGameId(user.getId(), gameId)
-                .orElseThrow(() -> new RuntimeException("No progress found"));
+        List<PlayerProgress> progressList = progressRepository.findAllByUserIdAndGameIdOrderByUpdatedAtDesc(user.getId(), gameId);
+        if (progressList.isEmpty()) {
+            throw new RuntimeException("No progress found");
+        }
+        PlayerProgress progress = progressList.get(0);
         
         if (progress.getCurrentLevel() == null) {
             throw new RuntimeException("No active level");
@@ -208,8 +236,11 @@ public class GameEngineService {
      */
     @Transactional
     public GameState advanceToNextLevel(User user, Long gameId) {
-        PlayerProgress progress = progressRepository.findByUserIdAndGameId(user.getId(), gameId)
-                .orElseThrow(() -> new RuntimeException("No progress found"));
+        List<PlayerProgress> progressList = progressRepository.findAllByUserIdAndGameIdOrderByUpdatedAtDesc(user.getId(), gameId);
+        if (progressList.isEmpty()) {
+            throw new RuntimeException("No progress found");
+        }
+        PlayerProgress progress = progressList.get(0);
         
         List<Level> levels = levelRepository.findByGameIdOrderByOrderIndexAsc(gameId);
         
@@ -247,8 +278,11 @@ public class GameEngineService {
      */
     @Transactional
     public PlayerProgress updatePlayerPosition(User user, Long gameId, double x, double y) {
-        PlayerProgress progress = progressRepository.findByUserIdAndGameId(user.getId(), gameId)
-                .orElseThrow(() -> new RuntimeException("No progress found"));
+        List<PlayerProgress> progressList = progressRepository.findAllByUserIdAndGameIdOrderByUpdatedAtDesc(user.getId(), gameId);
+        if (progressList.isEmpty()) {
+            throw new RuntimeException("No progress found");
+        }
+        PlayerProgress progress = progressList.get(0);
         
         progress.setPlayerPosition(String.format("{\"x\": %.2f, \"y\": %.2f}", x, y));
         return progressRepository.save(progress);

@@ -12,7 +12,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "player_progress")
+@Table(name = "player_progress", 
+       uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "game_id"}))
 @Data
 @Builder
 @NoArgsConstructor
