@@ -57,7 +57,10 @@ public class GameEngineService {
         }
         
         if (progress == null) {
-            // Create new progress
+            // Only create new progress if none exists for this specific game
+            log.info("No existing progress found. Creating new progress for user: {}, game: {}", 
+                    user.getUsername(), gameId);
+            
             Level firstLevel = levelRepository.findByGameIdOrderByOrderIndexAsc(gameId)
                     .stream()
                     .filter(Level::getActive)
@@ -90,14 +93,22 @@ public class GameEngineService {
                     .build();
             
             progress = progressRepository.save(progress);
-            log.info("Created new progress for user: {}, game: {}", user.getUsername(), gameId);
+            log.info("Created new progress ID: {} for user: {}, game: {}", 
+                    progress.getId(), user.getUsername(), gameId);
         } else {
-            // Refresh existing progress to ensure all associations are loaded
-            log.info("Resuming existing progress for user: {}, game: {}, progress ID: {}", 
-                    user.getUsername(), gameId, progress.getId());
+            // ALWAYS resume existing progress - never create new if one exists
+            log.info("Resuming existing progress ID: {} for user: {}, game: {}", 
+                    progress.getId(), user.getUsername(), gameId);
+            
             // Refresh the entity to ensure it's attached to the current session
             progress = progressRepository.findById(progress.getId())
                     .orElseThrow(() -> new RuntimeException("Progress not found after refresh"));
+            
+            // Ensure progress is for the correct game
+            if (!progress.getGame().getId().equals(gameId)) {
+                throw new RuntimeException("Progress belongs to different game. Expected: " + gameId + 
+                        ", Found: " + progress.getGame().getId());
+            }
         }
         
         return buildGameState(progress);
@@ -163,11 +174,21 @@ public class GameEngineService {
             }
         } else {
             // Find next step
-            int currentIndex = steps.indexOf(progress.getCurrentStep());
+            Long currentStepId = progress.getCurrentStep().getId();
+            int currentIndex = -1;
+            for (int i = 0; i < steps.size(); i++) {
+                if (steps.get(i).getId().equals(currentStepId)) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+            
             if (currentIndex >= 0 && currentIndex < steps.size() - 1) {
                 progress.setCurrentStep(steps.get(currentIndex + 1));
+                log.debug("Advancing to next step: {}", steps.get(currentIndex + 1).getName());
             } else {
                 // Scenario complete, advance to next scenario
+                log.debug("Scenario complete, advancing to next scenario");
                 return advanceToNextScenario(user, gameId);
             }
         }
@@ -210,7 +231,15 @@ public class GameEngineService {
             }
         } else {
             // Find next scenario
-            int currentIndex = scenarios.indexOf(progress.getCurrentScenario());
+            Long currentScenarioId = progress.getCurrentScenario().getId();
+            int currentIndex = -1;
+            for (int i = 0; i < scenarios.size(); i++) {
+                if (scenarios.get(i).getId().equals(currentScenarioId)) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+            
             if (currentIndex >= 0 && currentIndex < scenarios.size() - 1) {
                 Scenario nextScenario = scenarios.get(currentIndex + 1);
                 progress.setCurrentScenario(nextScenario);
@@ -221,8 +250,10 @@ public class GameEngineService {
                         .filter(ScenarioStep::getActive)
                         .toList();
                 progress.setCurrentStep(steps.isEmpty() ? null : steps.get(0));
+                log.debug("Advancing to next scenario: {}", nextScenario.getName());
             } else {
                 // Level complete, advance to next level
+                log.debug("Level complete, advancing to next level");
                 return advanceToNextLevel(user, gameId);
             }
         }
@@ -242,31 +273,65 @@ public class GameEngineService {
         }
         PlayerProgress progress = progressList.get(0);
         
-        List<Level> levels = levelRepository.findByGameIdOrderByOrderIndexAsc(gameId);
+        List<Level> levels = levelRepository.findByGameIdOrderByOrderIndexAsc(gameId)
+                .stream()
+                .filter(Level::getActive)
+                .toList();
         
-        int currentIndex = levels.indexOf(progress.getCurrentLevel());
-        if (currentIndex >= 0 && currentIndex < levels.size() - 1) {
-            Level nextLevel = levels.get(currentIndex + 1);
-            progress.setCurrentLevel(nextLevel);
-            
-            List<Scenario> scenarios = scenarioRepository.findByLevelIdOrderByOrderIndexAsc(nextLevel.getId())
-                    .stream()
-                    .filter(Scenario::getActive)
-                    .toList();
-            if (!scenarios.isEmpty()) {
-                progress.setCurrentScenario(scenarios.get(0));
-                List<ScenarioStep> steps = stepRepository.findByScenarioIdOrderByOrderIndexAsc(
-                        scenarios.get(0).getId()
-                ).stream()
-                        .filter(ScenarioStep::getActive)
+        if (progress.getCurrentLevel() == null) {
+            // No current level, start first level
+            if (!levels.isEmpty()) {
+                progress.setCurrentLevel(levels.get(0));
+                List<Scenario> scenarios = scenarioRepository.findByLevelIdOrderByOrderIndexAsc(levels.get(0).getId())
+                        .stream()
+                        .filter(Scenario::getActive)
                         .toList();
-                progress.setCurrentStep(steps.isEmpty() ? null : steps.get(0));
+                if (!scenarios.isEmpty()) {
+                    progress.setCurrentScenario(scenarios.get(0));
+                    List<ScenarioStep> steps = stepRepository.findByScenarioIdOrderByOrderIndexAsc(
+                            scenarios.get(0).getId()
+                    ).stream()
+                            .filter(ScenarioStep::getActive)
+                            .toList();
+                    progress.setCurrentStep(steps.isEmpty() ? null : steps.get(0));
+                }
             }
         } else {
-            // Game complete!
-            progress.setCompleted(true);
-            progress.setCurrentScenario(null);
-            progress.setCurrentStep(null);
+            // Find next level
+            Long currentLevelId = progress.getCurrentLevel().getId();
+            int currentIndex = -1;
+            for (int i = 0; i < levels.size(); i++) {
+                if (levels.get(i).getId().equals(currentLevelId)) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+            
+            if (currentIndex >= 0 && currentIndex < levels.size() - 1) {
+                Level nextLevel = levels.get(currentIndex + 1);
+                progress.setCurrentLevel(nextLevel);
+                
+                List<Scenario> scenarios = scenarioRepository.findByLevelIdOrderByOrderIndexAsc(nextLevel.getId())
+                        .stream()
+                        .filter(Scenario::getActive)
+                        .toList();
+                if (!scenarios.isEmpty()) {
+                    progress.setCurrentScenario(scenarios.get(0));
+                    List<ScenarioStep> steps = stepRepository.findByScenarioIdOrderByOrderIndexAsc(
+                            scenarios.get(0).getId()
+                    ).stream()
+                            .filter(ScenarioStep::getActive)
+                            .toList();
+                    progress.setCurrentStep(steps.isEmpty() ? null : steps.get(0));
+                }
+                log.debug("Advancing to next level: {}", nextLevel.getName());
+            } else {
+                // Game complete!
+                progress.setCompleted(true);
+                progress.setCurrentScenario(null);
+                progress.setCurrentStep(null);
+                log.info("Game completed for user: {}, game: {}", user.getUsername(), gameId);
+            }
         }
         
         progress = progressRepository.save(progress);

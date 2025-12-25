@@ -137,15 +137,21 @@ export default function Game() {
   // Check if dialog should be shown
   useEffect(() => {
     console.log('Current step:', gameState?.currentStep);
-    if (gameState?.currentStep?.dialog) {
+    if (!gameState?.currentStep) {
+      setShowDialog(false);
+      return;
+    }
+    
+    if (gameState.currentStep.dialog) {
       console.log('Dialog found:', gameState.currentStep.dialog);
       setShowDialog(true);
-    } else if (gameState?.currentStep?.type === 'ENTRY' && !gameState?.currentStep?.dialog) {
+    } else if (gameState.currentStep.type === 'ENTRY' && !gameState.currentStep.dialog) {
       // ENTRY step without dialog - auto-advance after a short delay
-      console.log('ENTRY step without dialog, auto-advancing...');
+      console.log('ENTRY step without dialog, auto-advancing in 1.5 seconds...');
       const timer = setTimeout(() => {
+        console.log('Auto-advancing ENTRY step...');
         handleStepAdvance();
-      }, 1000);
+      }, 1500);
       return () => clearTimeout(timer);
     } else {
       setShowDialog(false);
