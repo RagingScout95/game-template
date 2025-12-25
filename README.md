@@ -8,6 +8,8 @@
 - Java 17 or higher
 - Node.js 18+ and npm
 - PostgreSQL database running on localhost:5432
+- Git (for version control)
+- GitHub account (for repository hosting)
 
 ### Database Setup
 1. Create a PostgreSQL database named `game_tamplate`
@@ -38,6 +40,61 @@ Frontend will run on: `http://localhost:5173`
 ### Demo Credentials
 - **Player Account**: `player1` / `player123`
 - **Admin Account**: `admin` / `admin123`
+
+### Git Repository Setup
+The project is configured with Git and ready to push to GitHub:
+
+```bash
+# Already done for you:
+git init
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git remote add origin https://github.com/RagingScout95/game-template.git
+
+# To push to GitHub, run:
+git push -u origin main
+```
+
+When prompted:
+- Username: `RagingScout95`
+- Password: **Your GitHub Personal Access Token** (not your GitHub password)
+
+**Get your token:** https://github.com/settings/tokens/new (check `repo` scope)
+
+### Working with Branches
+
+**Current Branch:** `testing` (for development and testing)
+
+**Switch between branches:**
+```bash
+# Switch to main branch (stable production code)
+git checkout main
+
+# Switch to testing branch (for development)
+git checkout testing
+
+# See all branches
+git branch -a
+```
+
+**Push changes to GitHub:**
+```bash
+# Make sure you're on the right branch
+git status
+
+# Add and commit your changes
+git add .
+git commit -m "Your commit message"
+
+# Push to GitHub
+git push
+```
+
+**Pull latest changes:**
+```bash
+git pull
+```
 
 ### Easy Startup (Windows)
 Simply double-click `start-servers.bat` in the project root to start both servers automatically!
