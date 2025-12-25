@@ -112,9 +112,11 @@ See "Running the Application" section above for step-by-step instructions.
 5. ✅ You should be redirected to the games list
 
 #### 2. Game List Test
-1. After login, you should see "Demo Pixel Game"
-2. ✅ Game card should show the game name and description
-3. Click on the game card
+1. After login, you should see two games:
+   - **"Demo Game"** - Simple demo with 1 level, 1 scenario, 1 NPC
+   - **"Testing Game"** - Comprehensive test with 2 levels, 3 scenarios, 3 NPCs, 6 MCQs
+2. ✅ Game cards should show game names and descriptions
+3. Click on **"Testing Game"** to test the comprehensive features
 
 #### 3. Game Play Test
 1. The game canvas should load (800x600 pixel grid)
@@ -157,7 +159,53 @@ query {
   }
 }
 ```
-3. ✅ You should see the demo game data
+3. ✅ You should see both "Demo Game" and "Testing Game"
+
+---
+
+### 🎮 Testing Game Overview
+
+The **Testing Game** (available in the `testing` branch) is a comprehensive test game designed to validate all engine features:
+
+#### Game Structure:
+- **2 Levels:**
+  1. **Training Center** - Introduction and basic training
+  2. **Assessment Hall** - Final assessment with multiple questions
+
+- **3 Scenarios:**
+  1. **Welcome to Training** - Introduction with basic MCQ
+  2. **Advanced Training** - Two advanced MCQs
+  3. **Final Assessment** - Three final MCQs
+
+- **3 NPCs:**
+  - **Master Trainer** (Static) - Guides new players
+  - **Training Assistant** (Patrol) - Helps with practice
+  - **Chief Examiner** (Static) - Conducts final assessment
+
+- **Content:**
+  - 10+ dialogs with different NPCs
+  - 6 MCQs covering various topics
+  - 20+ scenario steps testing all step types
+  - Multiple audio assets
+  - Different movement modes (LOCKED, FREE)
+
+#### Testing Game Features:
+✅ Multiple levels with progression  
+✅ Multiple scenarios per level  
+✅ Different NPC types (Static, Patrol)  
+✅ Sequential dialogs  
+✅ Multiple MCQs in sequence  
+✅ All step types (ENTRY, DIALOG, MCQ, EXIT)  
+✅ Different movement modes  
+✅ Audio integration  
+✅ Complete game flow from start to finish  
+
+#### How to Test:
+1. Make sure you're on the `testing` branch: `git checkout testing`
+2. Restart the backend server to load the new game data
+3. Login as `player1` / `player123`
+4. Select **"Testing Game"** from the game list
+5. Play through all scenarios to test the complete flow
 
 ---
 
