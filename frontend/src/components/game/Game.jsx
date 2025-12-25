@@ -40,17 +40,24 @@ export default function Game() {
     try {
       const client = getAuthenticatedClient();
       
+      // Convert gameId to number (GraphQL expects ID which is Long)
+      const gameIdNum = parseInt(gameId, 10);
+      if (isNaN(gameIdNum)) {
+        throw new Error(`Invalid game ID: ${gameId}`);
+      }
+      
       // Try to get existing game state
       try {
         const stateData = await client.request(GET_GAME_STATE_QUERY, {
-          gameId: gameId
+          gameId: gameIdNum
         });
         setGameState(stateData.getGameState);
         updatePlayerPositionFromState(stateData.getGameState);
       } catch (e) {
+        console.log('No existing progress, starting new game:', e.message);
         // No existing progress, start new game
         const startData = await client.request(START_GAME_MUTATION, {
-          gameId: gameId
+          gameId: gameIdNum
         });
         setGameState(startData.startGame);
         updatePlayerPositionFromState(startData.startGame);
@@ -59,7 +66,10 @@ export default function Game() {
       setLoading(false);
     } catch (err) {
       console.error('Error initializing game:', err);
-      setError('Failed to load game');
+      const errorMessage = err.response?.errors?.[0]?.message || 
+                          err.message || 
+                          'Failed to load game';
+      setError(`Failed to load game: ${errorMessage}`);
       setLoading(false);
     }
   };
@@ -100,9 +110,10 @@ export default function Game() {
     // In production, you'd want to batch these or update less frequently
     try {
       const client = getAuthenticatedClient();
+      const gameIdNum = parseInt(gameId, 10);
       await client.request(UPDATE_PLAYER_POSITION_MUTATION, {
         input: {
-          gameId: gameId,
+          gameId: gameIdNum,
           x: newX,
           y: newY
         }
@@ -118,9 +129,10 @@ export default function Game() {
     
     try {
       const client = getAuthenticatedClient();
+      const gameIdNum = parseInt(gameId, 10);
       const data = await client.request(TRIGGER_EVENT_MUTATION, {
         input: {
-          gameId: gameId,
+          gameId: gameIdNum,
           condition: 'STEP_COMPLETION',
           params: '{}'
         }
@@ -149,9 +161,10 @@ export default function Game() {
       setShowMCQ(false);
       
       // Advance to next step
+      const gameIdNum = parseInt(gameId, 10);
       const data = await client.request(TRIGGER_EVENT_MUTATION, {
         input: {
-          gameId: gameId,
+          gameId: gameIdNum,
           condition: 'MCQ_ANSWERED',
           params: '{}'
         }
