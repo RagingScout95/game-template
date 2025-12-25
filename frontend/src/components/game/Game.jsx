@@ -55,20 +55,22 @@ export default function Game() {
       
       const client = getAuthenticatedClient();
       
-      // Convert gameId to number (GraphQL expects ID which is Long)
+      // GraphQL ID type is a string, but backend expects Long
+      // Try to parse as number first, if it fails, show error (backend uses numeric IDs)
       const gameIdNum = parseInt(gameId, 10);
       if (isNaN(gameIdNum)) {
-        throw new Error(`Invalid game ID: ${gameId}`);
+        console.error('Invalid game ID format:', gameId, '- Expected numeric ID');
+        throw new Error(`Invalid game ID format: ${gameId}. Expected numeric ID. Please select a game from the list.`);
       }
       
-      console.log('Initializing game with ID:', gameIdNum);
+      console.log('Initializing game with ID:', gameIdNum, '(original:', gameId, ')');
       
-      // Try to get existing game state
-      try {
-        console.log('Trying to get existing game state...');
-        const stateData = await client.request(GET_GAME_STATE_QUERY, {
-          gameId: gameIdNum
-        });
+        // Try to get existing game state
+        try {
+          console.log('Trying to get existing game state...');
+          const stateData = await client.request(GET_GAME_STATE_QUERY, {
+            gameId: gameIdNum
+          });
         console.log('Got existing game state:', stateData);
         setGameState(stateData.getGameState);
         updatePlayerPositionFromState(stateData.getGameState);
@@ -112,6 +114,9 @@ export default function Game() {
     try {
       const client = getAuthenticatedClient();
       const gameIdNum = parseInt(gameId, 10);
+      if (isNaN(gameIdNum)) {
+        throw new Error('Invalid game ID');
+      }
       const data = await client.request(TRIGGER_EVENT_MUTATION, {
         input: {
           gameId: gameIdNum,
@@ -162,6 +167,10 @@ export default function Game() {
     try {
       const client = getAuthenticatedClient();
       const gameIdNum = parseInt(gameId, 10);
+      if (isNaN(gameIdNum)) {
+        console.error('Invalid game ID for position update');
+        return;
+      }
       await client.request(UPDATE_PLAYER_POSITION_MUTATION, {
         input: {
           gameId: gameIdNum,
@@ -199,6 +208,9 @@ export default function Game() {
       
       // Advance to next step
       const gameIdNum = parseInt(gameId, 10);
+      if (isNaN(gameIdNum)) {
+        throw new Error('Invalid game ID');
+      }
       const data = await client.request(TRIGGER_EVENT_MUTATION, {
         input: {
           gameId: gameIdNum,
