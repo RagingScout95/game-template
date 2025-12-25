@@ -238,43 +238,70 @@ public class GameEngineService {
      */
     private GameState buildGameState(PlayerProgress progress) {
         try {
+            log.debug("Building game state for progress ID: {}", progress.getId());
+            
             // Force load lazy associations to avoid LazyInitializationException
             Level currentLevel = progress.getCurrentLevel();
             if (currentLevel != null) {
-                // Touch the level to ensure it's loaded
+                // Touch all fields that GraphQL will access
                 currentLevel.getId();
                 currentLevel.getName();
+                currentLevel.getDescription();
+                currentLevel.getOrderIndex();
+                currentLevel.getActive();
+                currentLevel.getMapData();
+                log.debug("Loaded level: {}", currentLevel.getName());
             }
             
             Scenario currentScenario = progress.getCurrentScenario();
             if (currentScenario != null) {
                 currentScenario.getId();
                 currentScenario.getName();
+                currentScenario.getDescription();
+                currentScenario.getOrderIndex();
+                currentScenario.getActive();
+                log.debug("Loaded scenario: {}", currentScenario.getName());
             }
             
             ScenarioStep currentStep = progress.getCurrentStep();
             if (currentStep != null) {
                 currentStep.getId();
                 currentStep.getName();
+                currentStep.getDescription();
+                currentStep.getType();
+                currentStep.getMovementMode();
+                currentStep.getOrderIndex();
+                currentStep.getActive();
+                
                 // Load dialog if present
                 if (currentStep.getDialog() != null) {
                     currentStep.getDialog().getId();
                     currentStep.getDialog().getSpeakerName();
+                    currentStep.getDialog().getText();
+                    log.debug("Loaded dialog: {}", currentStep.getDialog().getSpeakerName());
                 }
+                
+                log.debug("Loaded step: {}", currentStep.getName());
             }
             
+            // Load NPCs
             List<NPC> availableNPCs = currentLevel != null 
                     ? npcRepository.findByLevelIdAndActiveTrue(currentLevel.getId())
                     : List.of();
+            log.debug("Loaded {} NPCs", availableNPCs.size());
             
-            return GameState.builder()
+            GameState state = GameState.builder()
                     .progress(progress)
                     .currentLevel(currentLevel)
                     .currentScenario(currentScenario)
                     .currentStep(currentStep)
                     .availableNPCs(availableNPCs)
                     .build();
+            
+            log.debug("Game state built successfully");
+            return state;
         } catch (Exception e) {
+            log.error("Error building game state", e);
             throw new RuntimeException("Error building game state: " + e.getMessage(), e);
         }
     }
