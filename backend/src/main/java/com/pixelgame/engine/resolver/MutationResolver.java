@@ -72,8 +72,16 @@ public class MutationResolver {
             throw new RuntimeException("User does not have permission to start games");
         }
         
-        Long gameIdLong = parseGameId(gameId);
-        return gameEngineService.startGame(user, gameIdLong);
+        try {
+            Long gameIdLong = parseGameId(gameId);
+            log.info("Parsed gameId: {} -> {}", gameId, gameIdLong);
+            GameState state = gameEngineService.startGame(user, gameIdLong);
+            log.info("Game started successfully for user: {}, gameId: {}", user.getUsername(), gameIdLong);
+            return state;
+        } catch (Exception e) {
+            log.error("Error starting game for user: {}, gameId: {}", user.getUsername(), gameId, e);
+            throw new RuntimeException("Failed to start game: " + e.getMessage(), e);
+        }
     }
     
     @MutationMapping

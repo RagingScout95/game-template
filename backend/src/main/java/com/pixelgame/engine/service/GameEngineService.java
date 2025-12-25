@@ -237,21 +237,46 @@ public class GameEngineService {
      * Build complete game state
      */
     private GameState buildGameState(PlayerProgress progress) {
-        Level currentLevel = progress.getCurrentLevel();
-        Scenario currentScenario = progress.getCurrentScenario();
-        ScenarioStep currentStep = progress.getCurrentStep();
-        
-        List<NPC> availableNPCs = currentLevel != null 
-                ? npcRepository.findByLevelIdAndActiveTrue(currentLevel.getId())
-                : List.of();
-        
-        return GameState.builder()
-                .progress(progress)
-                .currentLevel(currentLevel)
-                .currentScenario(currentScenario)
-                .currentStep(currentStep)
-                .availableNPCs(availableNPCs)
-                .build();
+        try {
+            // Force load lazy associations to avoid LazyInitializationException
+            Level currentLevel = progress.getCurrentLevel();
+            if (currentLevel != null) {
+                // Touch the level to ensure it's loaded
+                currentLevel.getId();
+                currentLevel.getName();
+            }
+            
+            Scenario currentScenario = progress.getCurrentScenario();
+            if (currentScenario != null) {
+                currentScenario.getId();
+                currentScenario.getName();
+            }
+            
+            ScenarioStep currentStep = progress.getCurrentStep();
+            if (currentStep != null) {
+                currentStep.getId();
+                currentStep.getName();
+                // Load dialog if present
+                if (currentStep.getDialog() != null) {
+                    currentStep.getDialog().getId();
+                    currentStep.getDialog().getSpeakerName();
+                }
+            }
+            
+            List<NPC> availableNPCs = currentLevel != null 
+                    ? npcRepository.findByLevelIdAndActiveTrue(currentLevel.getId())
+                    : List.of();
+            
+            return GameState.builder()
+                    .progress(progress)
+                    .currentLevel(currentLevel)
+                    .currentScenario(currentScenario)
+                    .currentStep(currentStep)
+                    .availableNPCs(availableNPCs)
+                    .build();
+        } catch (Exception e) {
+            throw new RuntimeException("Error building game state: " + e.getMessage(), e);
+        }
     }
 }
 

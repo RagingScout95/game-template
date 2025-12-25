@@ -35,9 +35,13 @@ public class QueryResolver {
     @QueryMapping
     @PreAuthorize("hasRole('PLAYER') or hasRole('ADMIN')")
     public GameState getGameState(@Argument String gameId, Authentication authentication) {
-        User user = authService.getCurrentUser(authentication.getName());
-        Long gameIdLong = parseGameId(gameId);
-        return gameEngineService.getGameState(user, gameIdLong);
+        try {
+            User user = authService.getCurrentUser(authentication.getName());
+            Long gameIdLong = parseGameId(gameId);
+            return gameEngineService.getGameState(user, gameIdLong);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to get game state: " + e.getMessage(), e);
+        }
     }
     
     private Long parseGameId(String gameId) {
