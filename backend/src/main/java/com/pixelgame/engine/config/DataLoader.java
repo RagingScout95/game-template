@@ -186,6 +186,449 @@ public class DataLoader implements CommandLineRunner {
             log.info("Demo game setup complete!");
         }
         
+        // Create Testing Game - Comprehensive test with multiple features
+        if (gameRepository.findByName("Testing Game").isEmpty()) {
+            Game testGame = Game.builder()
+                    .name("Testing Game")
+                    .description("A comprehensive testing game with multiple levels, scenarios, NPCs, and MCQs")
+                    .active(true)
+                    .build();
+            testGame = gameRepository.save(testGame);
+            log.info("Created testing game");
+            
+            // ===== LEVEL 1: Training Center =====
+            Level level1 = Level.builder()
+                    .game(testGame)
+                    .name("Training Center")
+                    .description("The main training facility")
+                    .orderIndex(0)
+                    .mapData("{\"width\": 1000, \"height\": 800, \"background\": \"training_center.png\"}")
+                    .active(true)
+                    .build();
+            level1 = levelRepository.save(level1);
+            log.info("Created level: {}", level1.getName());
+            
+            // NPCs for Level 1
+            NPC trainer = NPC.builder()
+                    .level(level1)
+                    .name("Master Trainer")
+                    .description("The head trainer who guides new players")
+                    .movementType(NPCMovementType.STATIC)
+                    .spriteSheet("/sprites/trainer.png")
+                    .initialPosition("{\"x\": 200, \"y\": 300}")
+                    .active(true)
+                    .build();
+            trainer = npcRepository.save(trainer);
+            
+            NPC assistant = NPC.builder()
+                    .level(level1)
+                    .name("Training Assistant")
+                    .description("Helps with practice questions")
+                    .movementType(NPCMovementType.PATROL)
+                    .spriteSheet("/sprites/assistant.png")
+                    .initialPosition("{\"x\": 600, \"y\": 400}")
+                    .active(true)
+                    .build();
+            assistant = npcRepository.save(assistant);
+            
+            // Audio for Level 1
+            AudioAsset trainingMusic = AudioAsset.builder()
+                    .name("Training Center Music")
+                    .description("Motivational training music")
+                    .url("/audio/training_bg.mp3")
+                    .loop(true)
+                    .build();
+            trainingMusic = audioRepository.save(trainingMusic);
+            
+            // SCENARIO 1: Welcome & Introduction
+            Scenario scenario1 = Scenario.builder()
+                    .level(level1)
+                    .name("Welcome to Training")
+                    .description("Introduction to the training center")
+                    .orderIndex(0)
+                    .active(true)
+                    .build();
+            scenario1 = scenarioRepository.save(scenario1);
+            
+            Dialog welcomeDialog1 = Dialog.builder()
+                    .speakerName("Master Trainer")
+                    .text("Welcome, new recruit! I'm here to guide you through your training.")
+                    .npc(trainer)
+                    .build();
+            welcomeDialog1 = dialogRepository.save(welcomeDialog1);
+            
+            Dialog welcomeDialog2 = Dialog.builder()
+                    .speakerName("Master Trainer")
+                    .text("Let's start with some basic knowledge. Are you ready?")
+                    .npc(trainer)
+                    .build();
+            welcomeDialog2 = dialogRepository.save(welcomeDialog2);
+            
+            MCQ basicMCQ = MCQ.builder()
+                    .scenario(scenario1)
+                    .question("What is the primary goal of this training program?")
+                    .options("[\"Learn new skills\", \"Pass assessments\", \"Complete all scenarios\", \"Master the system\"]")
+                    .correctAnswerIndex(0)
+                    .build();
+            basicMCQ = mcqRepository.save(basicMCQ);
+            
+            Dialog correctDialog = Dialog.builder()
+                    .speakerName("Master Trainer")
+                    .text("Excellent! You're on the right track. Let's continue.")
+                    .npc(trainer)
+                    .build();
+            correctDialog = dialogRepository.save(correctDialog);
+            
+            // Steps for Scenario 1
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario1)
+                    .name("Entry")
+                    .description("Enter training center")
+                    .orderIndex(0)
+                    .type(StepType.ENTRY)
+                    .movementMode(MovementMode.LOCKED)
+                    .audio(trainingMusic)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario1)
+                    .name("Welcome Message 1")
+                    .description("First welcome dialog")
+                    .orderIndex(1)
+                    .type(StepType.DIALOG)
+                    .movementMode(MovementMode.LOCKED)
+                    .dialog(welcomeDialog1)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario1)
+                    .name("Welcome Message 2")
+                    .description("Second welcome dialog")
+                    .orderIndex(2)
+                    .type(StepType.DIALOG)
+                    .movementMode(MovementMode.LOCKED)
+                    .dialog(welcomeDialog2)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario1)
+                    .name("Basic Knowledge Quiz")
+                    .description("Answer basic MCQ")
+                    .orderIndex(3)
+                    .type(StepType.MCQ)
+                    .movementMode(MovementMode.LOCKED)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario1)
+                    .name("Correct Answer Feedback")
+                    .description("Feedback for correct answer")
+                    .orderIndex(4)
+                    .type(StepType.DIALOG)
+                    .movementMode(MovementMode.LOCKED)
+                    .dialog(correctDialog)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario1)
+                    .name("Exit")
+                    .description("Complete scenario")
+                    .orderIndex(5)
+                    .type(StepType.EXIT)
+                    .movementMode(MovementMode.FREE)
+                    .active(true)
+                    .build());
+            
+            // SCENARIO 2: Advanced Training
+            Scenario scenario2 = Scenario.builder()
+                    .level(level1)
+                    .name("Advanced Training")
+                    .description("More challenging questions")
+                    .orderIndex(1)
+                    .active(true)
+                    .build();
+            scenario2 = scenarioRepository.save(scenario2);
+            
+            Dialog advancedDialog1 = Dialog.builder()
+                    .speakerName("Training Assistant")
+                    .text("Great job! Now let's test your advanced knowledge.")
+                    .npc(assistant)
+                    .build();
+            advancedDialog1 = dialogRepository.save(advancedDialog1);
+            
+            MCQ advancedMCQ1 = MCQ.builder()
+                    .scenario(scenario2)
+                    .question("Which of these is NOT a valid step type?")
+                    .options("[\"ENTRY\", \"DIALOG\", \"MCQ\", \"BATTLE\"]")
+                    .correctAnswerIndex(3)
+                    .build();
+            advancedMCQ1 = mcqRepository.save(advancedMCQ1);
+            
+            MCQ advancedMCQ2 = MCQ.builder()
+                    .scenario(scenario2)
+                    .question("What happens when a scenario is completed?")
+                    .options("[\"Next scenario loads\", \"Game ends\", \"Player gets rewards\", \"All of the above\"]")
+                    .correctAnswerIndex(3)
+                    .build();
+            advancedMCQ2 = mcqRepository.save(advancedMCQ2);
+            
+            Dialog completionDialog = Dialog.builder()
+                    .speakerName("Training Assistant")
+                    .text("Perfect! You've mastered the training center. Time to move to the next level!")
+                    .npc(assistant)
+                    .build();
+            completionDialog = dialogRepository.save(completionDialog);
+            
+            // Steps for Scenario 2
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario2)
+                    .name("Entry")
+                    .description("Enter advanced training")
+                    .orderIndex(0)
+                    .type(StepType.ENTRY)
+                    .movementMode(MovementMode.LOCKED)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario2)
+                    .name("Introduction")
+                    .description("Assistant introduces advanced training")
+                    .orderIndex(1)
+                    .type(StepType.DIALOG)
+                    .movementMode(MovementMode.LOCKED)
+                    .dialog(advancedDialog1)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario2)
+                    .name("Advanced MCQ 1")
+                    .description("First advanced question")
+                    .orderIndex(2)
+                    .type(StepType.MCQ)
+                    .movementMode(MovementMode.LOCKED)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario2)
+                    .name("Advanced MCQ 2")
+                    .description("Second advanced question")
+                    .orderIndex(3)
+                    .type(StepType.MCQ)
+                    .movementMode(MovementMode.LOCKED)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario2)
+                    .name("Completion Message")
+                    .description("Training complete")
+                    .orderIndex(4)
+                    .type(StepType.DIALOG)
+                    .movementMode(MovementMode.LOCKED)
+                    .dialog(completionDialog)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario2)
+                    .name("Exit")
+                    .description("Complete advanced training")
+                    .orderIndex(5)
+                    .type(StepType.EXIT)
+                    .movementMode(MovementMode.FREE)
+                    .active(true)
+                    .build());
+            
+            // ===== LEVEL 2: Assessment Hall =====
+            Level level2 = Level.builder()
+                    .game(testGame)
+                    .name("Assessment Hall")
+                    .description("Final assessment area")
+                    .orderIndex(1)
+                    .mapData("{\"width\": 1200, \"height\": 900, \"background\": \"assessment_hall.png\"}")
+                    .active(true)
+                    .build();
+            level2 = levelRepository.save(level2);
+            log.info("Created level: {}", level2.getName());
+            
+            NPC examiner = NPC.builder()
+                    .level(level2)
+                    .name("Chief Examiner")
+                    .description("Conducts final assessments")
+                    .movementType(NPCMovementType.STATIC)
+                    .spriteSheet("/sprites/examiner.png")
+                    .initialPosition("{\"x\": 500, \"y\": 350}")
+                    .active(true)
+                    .build();
+            examiner = npcRepository.save(examiner);
+            
+            AudioAsset assessmentMusic = AudioAsset.builder()
+                    .name("Assessment Hall Music")
+                    .description("Serious assessment music")
+                    .url("/audio/assessment_bg.mp3")
+                    .loop(true)
+                    .build();
+            assessmentMusic = audioRepository.save(assessmentMusic);
+            
+            // SCENARIO 3: Final Assessment
+            Scenario scenario3 = Scenario.builder()
+                    .level(level2)
+                    .name("Final Assessment")
+                    .description("The ultimate test")
+                    .orderIndex(0)
+                    .active(true)
+                    .build();
+            scenario3 = scenarioRepository.save(scenario3);
+            
+            Dialog examDialog1 = Dialog.builder()
+                    .speakerName("Chief Examiner")
+                    .text("Welcome to the Assessment Hall. This is your final test.")
+                    .npc(examiner)
+                    .build();
+            examDialog1 = dialogRepository.save(examDialog1);
+            
+            Dialog examDialog2 = Dialog.builder()
+                    .speakerName("Chief Examiner")
+                    .text("You must answer all questions correctly to pass. Good luck!")
+                    .npc(examiner)
+                    .build();
+            examDialog2 = dialogRepository.save(examDialog2);
+            
+            MCQ finalMCQ1 = MCQ.builder()
+                    .scenario(scenario3)
+                    .question("What is the correct way to handle player progress?")
+                    .options("[\"Store in database\", \"Keep in memory only\", \"Use cookies\", \"Ignore it\"]")
+                    .correctAnswerIndex(0)
+                    .build();
+            finalMCQ1 = mcqRepository.save(finalMCQ1);
+            
+            MCQ finalMCQ2 = MCQ.builder()
+                    .scenario(scenario3)
+                    .question("Which component controls game logic?")
+                    .options("[\"Frontend\", \"Backend\", \"Database\", \"Browser\"]")
+                    .correctAnswerIndex(1)
+                    .build();
+            finalMCQ2 = mcqRepository.save(finalMCQ2);
+            
+            MCQ finalMCQ3 = MCQ.builder()
+                    .scenario(scenario3)
+                    .question("What is the purpose of triggers in the game engine?")
+                    .options("[\"Control flow\", \"Animate sprites\", \"Play sounds\", \"Render graphics\"]")
+                    .correctAnswerIndex(0)
+                    .build();
+            finalMCQ3 = mcqRepository.save(finalMCQ3);
+            
+            Dialog passDialog = Dialog.builder()
+                    .speakerName("Chief Examiner")
+                    .text("Congratulations! You've passed the assessment with flying colors!")
+                    .npc(examiner)
+                    .build();
+            passDialog = dialogRepository.save(passDialog);
+            
+            Dialog failDialog = Dialog.builder()
+                    .speakerName("Chief Examiner")
+                    .text("I'm sorry, but you need to review the material and try again.")
+                    .npc(examiner)
+                    .build();
+            failDialog = dialogRepository.save(failDialog);
+            
+            // Steps for Scenario 3
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario3)
+                    .name("Entry")
+                    .description("Enter assessment hall")
+                    .orderIndex(0)
+                    .type(StepType.ENTRY)
+                    .movementMode(MovementMode.LOCKED)
+                    .audio(assessmentMusic)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario3)
+                    .name("Examiner Introduction 1")
+                    .description("First examiner message")
+                    .orderIndex(1)
+                    .type(StepType.DIALOG)
+                    .movementMode(MovementMode.LOCKED)
+                    .dialog(examDialog1)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario3)
+                    .name("Examiner Introduction 2")
+                    .description("Second examiner message")
+                    .orderIndex(2)
+                    .type(StepType.DIALOG)
+                    .movementMode(MovementMode.LOCKED)
+                    .dialog(examDialog2)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario3)
+                    .name("Final MCQ 1")
+                    .description("First final question")
+                    .orderIndex(3)
+                    .type(StepType.MCQ)
+                    .movementMode(MovementMode.LOCKED)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario3)
+                    .name("Final MCQ 2")
+                    .description("Second final question")
+                    .orderIndex(4)
+                    .type(StepType.MCQ)
+                    .movementMode(MovementMode.LOCKED)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario3)
+                    .name("Final MCQ 3")
+                    .description("Third final question")
+                    .orderIndex(5)
+                    .type(StepType.MCQ)
+                    .movementMode(MovementMode.LOCKED)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario3)
+                    .name("Pass Message")
+                    .description("Success message")
+                    .orderIndex(6)
+                    .type(StepType.DIALOG)
+                    .movementMode(MovementMode.LOCKED)
+                    .dialog(passDialog)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario3)
+                    .name("Exit")
+                    .description("Complete assessment")
+                    .orderIndex(7)
+                    .type(StepType.EXIT)
+                    .movementMode(MovementMode.FREE)
+                    .active(true)
+                    .build());
+            
+            log.info("Testing game setup complete!");
+            log.info("Created: 2 levels, 3 scenarios, 3 NPCs, 10+ dialogs, 6 MCQs, 20+ steps");
+        }
+        
         log.info("Data loading complete");
     }
 }
