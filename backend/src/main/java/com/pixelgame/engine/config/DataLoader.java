@@ -344,11 +344,11 @@ public class DataLoader implements CommandLineRunner {
                     .active(true)
                     .build());
             
-            // SCENARIO 2: Advanced Training
+            // SCENARIO 2: Advanced Training Question 1
             Scenario scenario2 = Scenario.builder()
                     .level(level1)
-                    .name("Advanced Training")
-                    .description("More challenging questions")
+                    .name("Advanced Training - Question 1")
+                    .description("First advanced knowledge question")
                     .orderIndex(1)
                     .active(true)
                     .build();
@@ -356,7 +356,7 @@ public class DataLoader implements CommandLineRunner {
             
             Dialog advancedDialog1 = Dialog.builder()
                     .speakerName("Training Assistant")
-                    .text("Great job! Now let's test your advanced knowledge.")
+                    .text("Great job! Now let's test your advanced knowledge with the first question.")
                     .npc(assistant)
                     .build();
             advancedDialog1 = dialogRepository.save(advancedDialog1);
@@ -369,26 +369,18 @@ public class DataLoader implements CommandLineRunner {
                     .build();
             advancedMCQ1 = mcqRepository.save(advancedMCQ1);
             
-            MCQ advancedMCQ2 = MCQ.builder()
-                    .scenario(scenario2)
-                    .question("What happens when a scenario is completed?")
-                    .options("[\"Next scenario loads\", \"Game ends\", \"Player gets rewards\", \"All of the above\"]")
-                    .correctAnswerIndex(3)
-                    .build();
-            advancedMCQ2 = mcqRepository.save(advancedMCQ2);
-            
-            Dialog completionDialog = Dialog.builder()
+            Dialog correctDialog1 = Dialog.builder()
                     .speakerName("Training Assistant")
-                    .text("Perfect! You've mastered the training center. Time to move to the next level!")
+                    .text("Correct! BATTLE is not a valid step type. Let's continue to the next question.")
                     .npc(assistant)
                     .build();
-            completionDialog = dialogRepository.save(completionDialog);
+            correctDialog1 = dialogRepository.save(correctDialog1);
             
             // Steps for Scenario 2
             stepRepository.save(ScenarioStep.builder()
                     .scenario(scenario2)
                     .name("Entry")
-                    .description("Enter advanced training")
+                    .description("Enter advanced training question 1")
                     .orderIndex(0)
                     .type(StepType.ENTRY)
                     .movementMode(MovementMode.LOCKED)
@@ -398,7 +390,7 @@ public class DataLoader implements CommandLineRunner {
             stepRepository.save(ScenarioStep.builder()
                     .scenario(scenario2)
                     .name("Introduction")
-                    .description("Assistant introduces advanced training")
+                    .description("Assistant introduces first advanced question")
                     .orderIndex(1)
                     .type(StepType.DIALOG)
                     .movementMode(MovementMode.LOCKED)
@@ -418,19 +410,94 @@ public class DataLoader implements CommandLineRunner {
             
             stepRepository.save(ScenarioStep.builder()
                     .scenario(scenario2)
+                    .name("Feedback")
+                    .description("Feedback for answer")
+                    .orderIndex(3)
+                    .type(StepType.DIALOG)
+                    .movementMode(MovementMode.LOCKED)
+                    .dialog(correctDialog1)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario2)
+                    .name("Exit")
+                    .description("Complete first advanced question")
+                    .orderIndex(4)
+                    .type(StepType.EXIT)
+                    .movementMode(MovementMode.FREE)
+                    .active(true)
+                    .build());
+            
+            // SCENARIO 3: Advanced Training Question 2
+            Scenario scenario3 = Scenario.builder()
+                    .level(level1)
+                    .name("Advanced Training - Question 2")
+                    .description("Second advanced knowledge question")
+                    .orderIndex(2)
+                    .active(true)
+                    .build();
+            scenario3 = scenarioRepository.save(scenario3);
+            
+            Dialog advancedDialog2 = Dialog.builder()
+                    .speakerName("Training Assistant")
+                    .text("Excellent! Now here's your second advanced question.")
+                    .npc(assistant)
+                    .build();
+            advancedDialog2 = dialogRepository.save(advancedDialog2);
+            
+            MCQ advancedMCQ2 = MCQ.builder()
+                    .scenario(scenario3)
+                    .question("What happens when a scenario is completed?")
+                    .options("[\"Next scenario loads\", \"Game ends\", \"Player gets rewards\", \"All of the above\"]")
+                    .correctAnswerIndex(3)
+                    .build();
+            advancedMCQ2 = mcqRepository.save(advancedMCQ2);
+            
+            Dialog completionDialog = Dialog.builder()
+                    .speakerName("Training Assistant")
+                    .text("Perfect! You've mastered the training center. Time to move to the next level!")
+                    .npc(assistant)
+                    .build();
+            completionDialog = dialogRepository.save(completionDialog);
+            
+            // Steps for Scenario 3
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario3)
+                    .name("Entry")
+                    .description("Enter advanced training question 2")
+                    .orderIndex(0)
+                    .type(StepType.ENTRY)
+                    .movementMode(MovementMode.LOCKED)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario3)
+                    .name("Introduction")
+                    .description("Assistant introduces second advanced question")
+                    .orderIndex(1)
+                    .type(StepType.DIALOG)
+                    .movementMode(MovementMode.LOCKED)
+                    .dialog(advancedDialog2)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario3)
                     .name("Advanced MCQ 2")
                     .description("Second advanced question")
-                    .orderIndex(3)
+                    .orderIndex(2)
                     .type(StepType.MCQ)
                     .movementMode(MovementMode.LOCKED)
                     .active(true)
                     .build());
             
             stepRepository.save(ScenarioStep.builder()
-                    .scenario(scenario2)
+                    .scenario(scenario3)
                     .name("Completion Message")
                     .description("Training complete")
-                    .orderIndex(4)
+                    .orderIndex(3)
                     .type(StepType.DIALOG)
                     .movementMode(MovementMode.LOCKED)
                     .dialog(completionDialog)
@@ -438,10 +505,10 @@ public class DataLoader implements CommandLineRunner {
                     .build());
             
             stepRepository.save(ScenarioStep.builder()
-                    .scenario(scenario2)
+                    .scenario(scenario3)
                     .name("Exit")
                     .description("Complete advanced training")
-                    .orderIndex(5)
+                    .orderIndex(4)
                     .type(StepType.EXIT)
                     .movementMode(MovementMode.FREE)
                     .active(true)
@@ -478,48 +545,196 @@ public class DataLoader implements CommandLineRunner {
                     .build();
             assessmentMusic = audioRepository.save(assessmentMusic);
             
-            // SCENARIO 3: Final Assessment
-            Scenario scenario3 = Scenario.builder()
+            // SCENARIO 4: Final Assessment Question 1
+            Scenario scenario4 = Scenario.builder()
                     .level(level2)
-                    .name("Final Assessment")
-                    .description("The ultimate test")
+                    .name("Final Assessment - Question 1")
+                    .description("First assessment question")
                     .orderIndex(0)
                     .active(true)
                     .build();
-            scenario3 = scenarioRepository.save(scenario3);
+            scenario4 = scenarioRepository.save(scenario4);
             
             Dialog examDialog1 = Dialog.builder()
                     .speakerName("Chief Examiner")
-                    .text("Welcome to the Assessment Hall. This is your final test.")
+                    .text("Welcome to the Assessment Hall. This is your final test. Let's begin with the first question.")
                     .npc(examiner)
                     .build();
             examDialog1 = dialogRepository.save(examDialog1);
             
-            Dialog examDialog2 = Dialog.builder()
-                    .speakerName("Chief Examiner")
-                    .text("You must answer all questions correctly to pass. Good luck!")
-                    .npc(examiner)
-                    .build();
-            examDialog2 = dialogRepository.save(examDialog2);
-            
             MCQ finalMCQ1 = MCQ.builder()
-                    .scenario(scenario3)
+                    .scenario(scenario4)
                     .question("What is the correct way to handle player progress?")
                     .options("[\"Store in database\", \"Keep in memory only\", \"Use cookies\", \"Ignore it\"]")
                     .correctAnswerIndex(0)
                     .build();
             finalMCQ1 = mcqRepository.save(finalMCQ1);
             
+            Dialog continueDialog1 = Dialog.builder()
+                    .speakerName("Chief Examiner")
+                    .text("Good! Let's continue to the next question.")
+                    .npc(examiner)
+                    .build();
+            continueDialog1 = dialogRepository.save(continueDialog1);
+            
+            // Steps for Scenario 4
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario4)
+                    .name("Entry")
+                    .description("Enter assessment hall")
+                    .orderIndex(0)
+                    .type(StepType.ENTRY)
+                    .movementMode(MovementMode.LOCKED)
+                    .audio(assessmentMusic)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario4)
+                    .name("Examiner Introduction")
+                    .description("Examiner introduces first question")
+                    .orderIndex(1)
+                    .type(StepType.DIALOG)
+                    .movementMode(MovementMode.LOCKED)
+                    .dialog(examDialog1)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario4)
+                    .name("Final MCQ 1")
+                    .description("First final question")
+                    .orderIndex(2)
+                    .type(StepType.MCQ)
+                    .movementMode(MovementMode.LOCKED)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario4)
+                    .name("Continue Message")
+                    .description("Continue to next question")
+                    .orderIndex(3)
+                    .type(StepType.DIALOG)
+                    .movementMode(MovementMode.LOCKED)
+                    .dialog(continueDialog1)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario4)
+                    .name("Exit")
+                    .description("Complete first assessment question")
+                    .orderIndex(4)
+                    .type(StepType.EXIT)
+                    .movementMode(MovementMode.FREE)
+                    .active(true)
+                    .build());
+            
+            // SCENARIO 5: Final Assessment Question 2
+            Scenario scenario5 = Scenario.builder()
+                    .level(level2)
+                    .name("Final Assessment - Question 2")
+                    .description("Second assessment question")
+                    .orderIndex(1)
+                    .active(true)
+                    .build();
+            scenario5 = scenarioRepository.save(scenario5);
+            
+            Dialog examDialog2 = Dialog.builder()
+                    .speakerName("Chief Examiner")
+                    .text("Here's your second assessment question.")
+                    .npc(examiner)
+                    .build();
+            examDialog2 = dialogRepository.save(examDialog2);
+            
             MCQ finalMCQ2 = MCQ.builder()
-                    .scenario(scenario3)
+                    .scenario(scenario5)
                     .question("Which component controls game logic?")
                     .options("[\"Frontend\", \"Backend\", \"Database\", \"Browser\"]")
                     .correctAnswerIndex(1)
                     .build();
             finalMCQ2 = mcqRepository.save(finalMCQ2);
             
+            Dialog continueDialog2 = Dialog.builder()
+                    .speakerName("Chief Examiner")
+                    .text("Well done! One more question to go.")
+                    .npc(examiner)
+                    .build();
+            continueDialog2 = dialogRepository.save(continueDialog2);
+            
+            // Steps for Scenario 5
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario5)
+                    .name("Entry")
+                    .description("Enter second assessment question")
+                    .orderIndex(0)
+                    .type(StepType.ENTRY)
+                    .movementMode(MovementMode.LOCKED)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario5)
+                    .name("Examiner Introduction")
+                    .description("Examiner introduces second question")
+                    .orderIndex(1)
+                    .type(StepType.DIALOG)
+                    .movementMode(MovementMode.LOCKED)
+                    .dialog(examDialog2)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario5)
+                    .name("Final MCQ 2")
+                    .description("Second final question")
+                    .orderIndex(2)
+                    .type(StepType.MCQ)
+                    .movementMode(MovementMode.LOCKED)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario5)
+                    .name("Continue Message")
+                    .description("Continue to final question")
+                    .orderIndex(3)
+                    .type(StepType.DIALOG)
+                    .movementMode(MovementMode.LOCKED)
+                    .dialog(continueDialog2)
+                    .active(true)
+                    .build());
+            
+            stepRepository.save(ScenarioStep.builder()
+                    .scenario(scenario5)
+                    .name("Exit")
+                    .description("Complete second assessment question")
+                    .orderIndex(4)
+                    .type(StepType.EXIT)
+                    .movementMode(MovementMode.FREE)
+                    .active(true)
+                    .build());
+            
+            // SCENARIO 6: Final Assessment Question 3
+            Scenario scenario6 = Scenario.builder()
+                    .level(level2)
+                    .name("Final Assessment - Question 3")
+                    .description("Final assessment question")
+                    .orderIndex(2)
+                    .active(true)
+                    .build();
+            scenario6 = scenarioRepository.save(scenario6);
+            
+            Dialog examDialog3 = Dialog.builder()
+                    .speakerName("Chief Examiner")
+                    .text("This is your final question. Answer it correctly to pass the assessment!")
+                    .npc(examiner)
+                    .build();
+            examDialog3 = dialogRepository.save(examDialog3);
+            
             MCQ finalMCQ3 = MCQ.builder()
-                    .scenario(scenario3)
+                    .scenario(scenario6)
                     .question("What is the purpose of triggers in the game engine?")
                     .options("[\"Control flow\", \"Animate sprites\", \"Play sounds\", \"Render graphics\"]")
                     .correctAnswerIndex(0)
@@ -533,82 +748,43 @@ public class DataLoader implements CommandLineRunner {
                     .build();
             passDialog = dialogRepository.save(passDialog);
             
-            Dialog failDialog = Dialog.builder()
-                    .speakerName("Chief Examiner")
-                    .text("I'm sorry, but you need to review the material and try again.")
-                    .npc(examiner)
-                    .build();
-            failDialog = dialogRepository.save(failDialog);
-            
-            // Steps for Scenario 3
+            // Steps for Scenario 6
             stepRepository.save(ScenarioStep.builder()
-                    .scenario(scenario3)
+                    .scenario(scenario6)
                     .name("Entry")
-                    .description("Enter assessment hall")
+                    .description("Enter final assessment question")
                     .orderIndex(0)
                     .type(StepType.ENTRY)
                     .movementMode(MovementMode.LOCKED)
-                    .audio(assessmentMusic)
                     .active(true)
                     .build());
             
             stepRepository.save(ScenarioStep.builder()
-                    .scenario(scenario3)
-                    .name("Examiner Introduction 1")
-                    .description("First examiner message")
+                    .scenario(scenario6)
+                    .name("Examiner Introduction")
+                    .description("Examiner introduces final question")
                     .orderIndex(1)
                     .type(StepType.DIALOG)
                     .movementMode(MovementMode.LOCKED)
-                    .dialog(examDialog1)
+                    .dialog(examDialog3)
                     .active(true)
                     .build());
             
             stepRepository.save(ScenarioStep.builder()
-                    .scenario(scenario3)
-                    .name("Examiner Introduction 2")
-                    .description("Second examiner message")
-                    .orderIndex(2)
-                    .type(StepType.DIALOG)
-                    .movementMode(MovementMode.LOCKED)
-                    .dialog(examDialog2)
-                    .active(true)
-                    .build());
-            
-            stepRepository.save(ScenarioStep.builder()
-                    .scenario(scenario3)
-                    .name("Final MCQ 1")
-                    .description("First final question")
-                    .orderIndex(3)
-                    .type(StepType.MCQ)
-                    .movementMode(MovementMode.LOCKED)
-                    .active(true)
-                    .build());
-            
-            stepRepository.save(ScenarioStep.builder()
-                    .scenario(scenario3)
-                    .name("Final MCQ 2")
-                    .description("Second final question")
-                    .orderIndex(4)
-                    .type(StepType.MCQ)
-                    .movementMode(MovementMode.LOCKED)
-                    .active(true)
-                    .build());
-            
-            stepRepository.save(ScenarioStep.builder()
-                    .scenario(scenario3)
+                    .scenario(scenario6)
                     .name("Final MCQ 3")
                     .description("Third final question")
-                    .orderIndex(5)
+                    .orderIndex(2)
                     .type(StepType.MCQ)
                     .movementMode(MovementMode.LOCKED)
                     .active(true)
                     .build());
             
             stepRepository.save(ScenarioStep.builder()
-                    .scenario(scenario3)
+                    .scenario(scenario6)
                     .name("Pass Message")
                     .description("Success message")
-                    .orderIndex(6)
+                    .orderIndex(3)
                     .type(StepType.DIALOG)
                     .movementMode(MovementMode.LOCKED)
                     .dialog(passDialog)
@@ -616,17 +792,17 @@ public class DataLoader implements CommandLineRunner {
                     .build());
             
             stepRepository.save(ScenarioStep.builder()
-                    .scenario(scenario3)
+                    .scenario(scenario6)
                     .name("Exit")
                     .description("Complete assessment")
-                    .orderIndex(7)
+                    .orderIndex(4)
                     .type(StepType.EXIT)
                     .movementMode(MovementMode.FREE)
                     .active(true)
                     .build());
             
             log.info("Testing game setup complete!");
-            log.info("Created: 2 levels, 3 scenarios, 3 NPCs, 10+ dialogs, 6 MCQs, 20+ steps");
+            log.info("Created: 2 levels, 6 scenarios (one per MCQ), 3 NPCs, 15+ dialogs, 6 MCQs, 30+ steps");
         }
         
         log.info("Data loading complete");
