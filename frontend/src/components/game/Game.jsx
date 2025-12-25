@@ -59,25 +59,39 @@ export default function Game() {
       // Backend now accepts String IDs and converts them to Long internally
       console.log('Initializing game with ID:', gameId);
       
-      // Try to get existing game state
+      // Try to get existing game state first
       try {
         console.log('Trying to get existing game state...');
         const stateData = await client.request(GET_GAME_STATE_QUERY, {
           gameId: gameId
         });
         console.log('Got existing game state:', stateData);
-        setGameState(stateData.getGameState);
-        updatePlayerPositionFromState(stateData.getGameState);
+        if (stateData.getGameState) {
+          setGameState(stateData.getGameState);
+          updatePlayerPositionFromState(stateData.getGameState);
+        } else {
+          throw new Error('No game state returned');
+        }
       } catch (e) {
-        console.log('No existing progress, starting new game. Error:', e);
-        // No existing progress, start new game
-        console.log('Starting new game...');
-        const startData = await client.request(START_GAME_MUTATION, {
-          gameId: gameId
-        });
-        console.log('Game started:', startData);
-        setGameState(startData.startGame);
-        updatePlayerPositionFromState(startData.startGame);
+        console.log('No existing progress or error getting state, starting/resuming game. Error:', e.message || e);
+        // No existing progress or error, start/resume game
+        // startGame will return existing progress if it exists, or create new one
+        console.log('Starting/resuming game...');
+        try {
+          const startData = await client.request(START_GAME_MUTATION, {
+            gameId: gameId
+          });
+          console.log('Game started/resumed:', startData);
+          if (startData.startGame) {
+            setGameState(startData.startGame);
+            updatePlayerPositionFromState(startData.startGame);
+          } else {
+            throw new Error('No game state returned from startGame');
+          }
+        } catch (startError) {
+          console.error('Error starting game:', startError);
+          throw startError;
+        }
       }
       
       setLoading(false);

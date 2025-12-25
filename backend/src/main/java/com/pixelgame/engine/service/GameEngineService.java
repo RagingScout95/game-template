@@ -71,11 +71,19 @@ public class GameEngineService {
                     .currentLevel(firstLevel)
                     .currentScenario(firstScenario)
                     .currentStep(firstStep)
-                    .playerPosition("{\"x\": 0, \"y\": 0}")
+                    .playerPosition("{\"x\": 400, \"y\": 300}")
                     .completed(false)
                     .build();
             
             progress = progressRepository.save(progress);
+            log.info("Created new progress for user: {}, game: {}", user.getUsername(), gameId);
+        } else {
+            // Refresh existing progress to ensure all associations are loaded
+            log.info("Resuming existing progress for user: {}, game: {}, progress ID: {}", 
+                    user.getUsername(), gameId, progress.getId());
+            // Refresh the entity to ensure it's attached to the current session
+            progress = progressRepository.findById(progress.getId())
+                    .orElseThrow(() -> new RuntimeException("Progress not found after refresh"));
         }
         
         return buildGameState(progress);
@@ -87,7 +95,20 @@ public class GameEngineService {
     @Transactional(readOnly = true)
     public GameState getGameState(User user, Long gameId) {
         PlayerProgress progress = progressRepository.findByUserIdAndGameId(user.getId(), gameId)
-                .orElseThrow(() -> new RuntimeException("No progress found. Please start the game first."));
+                .orElse(null);
+        
+        if (progress == null) {
+            // No progress exists, return null or throw exception
+            // Frontend will catch this and call startGame
+            throw new RuntimeException("No progress found. Please start the game first.");
+        }
+        
+        // Refresh to ensure entity is attached to current session
+        progress = progressRepository.findById(progress.getId())
+                .orElseThrow(() -> new RuntimeException("Progress not found after refresh"));
+        
+        log.debug("Getting game state for user: {}, game: {}, progress ID: {}", 
+                user.getUsername(), gameId, progress.getId());
         
         return buildGameState(progress);
     }
@@ -240,7 +261,20 @@ public class GameEngineService {
         try {
             log.debug("Building game state for progress ID: {}", progress.getId());
             
+            // Ensure progress is fully loaded
+            if (progress.getId() == null) {
+                throw new RuntimeException("Progress ID is null");
+            }
+            
             // Force load lazy associations to avoid LazyInitializationException
+            // Access user and game to ensure they're loaded
+            if (progress.getUser() != null) {
+                progress.getUser().getId();
+            }
+            if (progress.getGame() != null) {
+                progress.getGame().getId();
+            }
+            
             Level currentLevel = progress.getCurrentLevel();
             if (currentLevel != null) {
                 // Touch all fields that GraphQL will access
@@ -250,7 +284,9 @@ public class GameEngineService {
                 currentLevel.getOrderIndex();
                 currentLevel.getActive();
                 currentLevel.getMapData();
-                log.debug("Loaded level: {}", currentLevel.getName());
+                log.debug("Loaded level: {} (ID: {})", currentLevel.getName(), currentLevel.getId());
+            } else {
+                log.debug("No current level in progress");
             }
             
             Scenario currentScenario = progress.getCurrentScenario();
@@ -260,7 +296,9 @@ public class GameEngineService {
                 currentScenario.getDescription();
                 currentScenario.getOrderIndex();
                 currentScenario.getActive();
-                log.debug("Loaded scenario: {}", currentScenario.getName());
+                log.debug("Loaded scenario: {} (ID: {})", currentScenario.getName(), currentScenario.getId());
+            } else {
+                log.debug("No current scenario in progress");
             }
             
             ScenarioStep currentStep = progress.getCurrentStep();
@@ -281,14 +319,22 @@ public class GameEngineService {
                     log.debug("Loaded dialog: {}", currentStep.getDialog().getSpeakerName());
                 }
                 
-                log.debug("Loaded step: {}", currentStep.getName());
+                log.debug("Loaded step: {} (ID: {})", currentStep.getName(), currentStep.getId());
+            } else {
+                log.debug("No current step in progress");
             }
             
             // Load NPCs
-            List<NPC> availableNPCs = currentLevel != null 
-                    ? npcRepository.findByLevelIdAndActiveTrue(currentLevel.getId())
-                    : List.of();
-            log.debug("Loaded {} NPCs", availableNPCs.size());
+            List<NPC> availableNPCs = List.of();
+            if (currentLevel != null && currentLevel.getId() != null) {
+                try {
+                    availableNPCs = npcRepository.findByLevelIdAndActiveTrue(currentLevel.getId());
+                    log.debug("Loaded {} NPCs for level {}", availableNPCs.size(), currentLevel.getId());
+                } catch (Exception e) {
+                    log.warn("Error loading NPCs: {}", e.getMessage());
+                    availableNPCs = List.of();
+                }
+            }
             
             GameState state = GameState.builder()
                     .progress(progress)
@@ -298,10 +344,10 @@ public class GameEngineService {
                     .availableNPCs(availableNPCs)
                     .build();
             
-            log.debug("Game state built successfully");
+            log.debug("Game state built successfully for progress ID: {}", progress.getId());
             return state;
         } catch (Exception e) {
-            log.error("Error building game state", e);
+            log.error("Error building game state for progress ID: {}", progress != null ? progress.getId() : "null", e);
             throw new RuntimeException("Error building game state: " + e.getMessage(), e);
         }
     }
