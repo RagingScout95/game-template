@@ -1,0 +1,48 @@
+package com.pixelgame.engine.model.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "dialogs")
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
+public class Dialog {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(nullable = false)
+    private String speakerName;
+    
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String text;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "npc_id")
+    private NPC npc;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "voice_audio_id")
+    private AudioAsset voiceAudio;
+    
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+    
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+}
+

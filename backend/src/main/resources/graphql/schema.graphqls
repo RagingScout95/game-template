@@ -1,0 +1,435 @@
+# Authentication Types
+type AuthPayload {
+    token: String!
+    user: User!
+}
+
+# User Types
+type User {
+    id: ID!
+    username: String!
+    name: String!
+    empId: String
+    role: UserRole!
+    active: Boolean!
+    createdAt: String!
+}
+
+enum UserRole {
+    PLAYER
+    ADMIN
+}
+
+# Game Types
+type Game {
+    id: ID!
+    name: String!
+    description: String
+    active: Boolean!
+    levels: [Level!]!
+    createdAt: String!
+    updatedAt: String!
+}
+
+type Level {
+    id: ID!
+    name: String!
+    description: String
+    orderIndex: Int!
+    active: Boolean!
+    mapData: String
+    game: Game!
+    scenarios: [Scenario!]!
+    npcs: [NPC!]!
+}
+
+type Scenario {
+    id: ID!
+    name: String!
+    description: String
+    orderIndex: Int!
+    active: Boolean!
+    level: Level!
+    steps: [ScenarioStep!]!
+    mcq: MCQ
+}
+
+type ScenarioStep {
+    id: ID!
+    name: String!
+    description: String
+    orderIndex: Int!
+    type: StepType!
+    movementMode: MovementMode!
+    active: Boolean!
+    scenario: Scenario!
+    dialog: Dialog
+    audio: AudioAsset
+    triggers: [Trigger!]!
+}
+
+enum StepType {
+    ENTRY
+    DIALOG
+    MCQ
+    RESULT
+    EXIT
+}
+
+enum MovementMode {
+    FREE
+    HORIZONTAL_ONLY
+    VERTICAL_ONLY
+    LOCKED
+}
+
+type Trigger {
+    id: ID!
+    name: String!
+    description: String
+    condition: TriggerCondition!
+    conditionParams: String
+    active: Boolean!
+    outcomes: [TriggerOutcome!]!
+}
+
+enum TriggerCondition {
+    ZONE_ENTRY
+    ZONE_EXIT
+    NPC_INTERACTION
+    OBJECT_INTERACTION
+    SCENARIO_COMPLETION
+    STEP_COMPLETION
+    MCQ_ANSWERED
+    TIMER_ELAPSED
+}
+
+type TriggerOutcome {
+    id: ID!
+    type: OutcomeType!
+    params: String
+    orderIndex: Int!
+}
+
+enum OutcomeType {
+    END_GAME
+    ADVANCE_SCENARIO
+    SKIP_SCENARIO
+    CHANGE_LEVEL
+    TELEPORT_PLAYER
+    LOCK_MOVEMENT
+    UNLOCK_MOVEMENT
+    SPAWN_NPC
+    REMOVE_NPC
+    CHANGE_NPC_BEHAVIOR
+    PLAY_AUDIO
+    STOP_AUDIO
+    SHOW_DIALOG
+    SHOW_MCQ
+}
+
+type NPC {
+    id: ID!
+    name: String!
+    description: String
+    movementType: NPCMovementType!
+    spriteSheet: String!
+    initialPosition: String
+    pathData: String
+    active: Boolean!
+}
+
+enum NPCMovementType {
+    STATIC
+    FOLLOW_PLAYER
+    PATROL
+    EVENT_DRIVEN
+}
+
+type Dialog {
+    id: ID!
+    speakerName: String!
+    text: String!
+    npc: NPC
+    voiceAudio: AudioAsset
+}
+
+type MCQ {
+    id: ID!
+    question: String!
+    options: String!
+    correctAnswerIndex: Int
+}
+
+type AudioAsset {
+    id: ID!
+    name: String!
+    description: String
+    url: String!
+    durationMs: Int
+    loop: Boolean!
+}
+
+type PlayerProgress {
+    id: ID!
+    user: User!
+    game: Game!
+    currentLevel: Level
+    currentScenario: Scenario
+    currentStep: ScenarioStep
+    playerPosition: String
+    completed: Boolean!
+    createdAt: String!
+    updatedAt: String!
+}
+
+type PlayerAnswer {
+    id: ID!
+    user: User!
+    mcq: MCQ!
+    selectedOptionIndex: Int!
+    isCorrect: Boolean!
+    answeredAt: String!
+}
+
+# Game State Response
+type GameState {
+    progress: PlayerProgress!
+    currentLevel: Level
+    currentScenario: Scenario
+    currentStep: ScenarioStep
+    availableNPCs: [NPC!]!
+}
+
+# Input Types
+input RegisterPlayerInput {
+    username: String!
+    password: String!
+    name: String!
+    empId: String!
+}
+
+input LoginInput {
+    username: String!
+    password: String!
+}
+
+input CreateGameInput {
+    name: String!
+    description: String
+}
+
+input UpdateGameInput {
+    id: ID!
+    name: String
+    description: String
+    active: Boolean
+}
+
+input CreateLevelInput {
+    gameId: ID!
+    name: String!
+    description: String
+    orderIndex: Int!
+    mapData: String
+}
+
+input UpdateLevelInput {
+    id: ID!
+    name: String
+    description: String
+    orderIndex: Int
+    mapData: String
+    active: Boolean
+}
+
+input CreateScenarioInput {
+    levelId: ID!
+    name: String!
+    description: String
+    orderIndex: Int!
+}
+
+input UpdateScenarioInput {
+    id: ID!
+    name: String
+    description: String
+    orderIndex: Int
+    active: Boolean
+}
+
+input CreateScenarioStepInput {
+    scenarioId: ID!
+    name: String!
+    description: String
+    orderIndex: Int!
+    type: StepType!
+    movementMode: MovementMode!
+    dialogId: ID
+    audioId: ID
+}
+
+input UpdateScenarioStepInput {
+    id: ID!
+    name: String
+    description: String
+    orderIndex: Int
+    type: StepType
+    movementMode: MovementMode
+    dialogId: ID
+    audioId: ID
+    active: Boolean
+}
+
+input CreateMCQInput {
+    scenarioId: ID!
+    question: String!
+    options: String!
+    correctAnswerIndex: Int
+}
+
+input UpdateMCQInput {
+    id: ID!
+    question: String
+    options: String
+    correctAnswerIndex: Int
+}
+
+input CreateDialogInput {
+    speakerName: String!
+    text: String!
+    npcId: ID
+    voiceAudioId: ID
+}
+
+input UpdateDialogInput {
+    id: ID!
+    speakerName: String
+    text: String
+    npcId: ID
+    voiceAudioId: ID
+}
+
+input CreateNPCInput {
+    levelId: ID!
+    name: String!
+    description: String
+    movementType: NPCMovementType!
+    spriteSheet: String!
+    initialPosition: String
+    pathData: String
+}
+
+input UpdateNPCInput {
+    id: ID!
+    name: String
+    description: String
+    movementType: NPCMovementType
+    spriteSheet: String
+    initialPosition: String
+    pathData: String
+    active: Boolean
+}
+
+input CreateAudioAssetInput {
+    name: String!
+    description: String
+    url: String!
+    durationMs: Int
+    loop: Boolean
+}
+
+input UpdateAudioAssetInput {
+    id: ID!
+    name: String
+    description: String
+    url: String
+    durationMs: Int
+    loop: Boolean
+}
+
+input SubmitMCQAnswerInput {
+    mcqId: ID!
+    selectedOptionIndex: Int!
+}
+
+input UpdatePlayerPositionInput {
+    gameId: ID!
+    x: Float!
+    y: Float!
+}
+
+input TriggerEventInput {
+    gameId: ID!
+    condition: TriggerCondition!
+    params: String
+}
+
+# Query
+type Query {
+    # Player Queries
+    me: User!
+    getGameState(gameId: ID!): GameState!
+    getAllGames: [Game!]!
+    getGame(id: ID!): Game
+    
+    # Admin Queries
+    getAllUsers: [User!]!
+    getUser(id: ID!): User
+    getLevel(id: ID!): Level
+    getScenario(id: ID!): Scenario
+    getScenarioStep(id: ID!): ScenarioStep
+    getNPC(id: ID!): NPC
+    getDialog(id: ID!): Dialog
+    getMCQ(id: ID!): MCQ
+    getAudioAsset(id: ID!): AudioAsset
+    getPlayerProgress(userId: ID!, gameId: ID!): PlayerProgress
+    getPlayerAnswers(userId: ID!): [PlayerAnswer!]!
+}
+
+# Mutation
+type Mutation {
+    # Authentication
+    registerPlayer(input: RegisterPlayerInput!): AuthPayload!
+    login(input: LoginInput!): AuthPayload!
+    
+    # Player Mutations
+    startGame(gameId: ID!): GameState!
+    submitMCQAnswer(input: SubmitMCQAnswerInput!): PlayerAnswer!
+    updatePlayerPosition(input: UpdatePlayerPositionInput!): PlayerProgress!
+    triggerEvent(input: TriggerEventInput!): GameState!
+    
+    # Admin Game Management
+    createGame(input: CreateGameInput!): Game!
+    updateGame(input: UpdateGameInput!): Game!
+    deleteGame(id: ID!): Boolean!
+    
+    createLevel(input: CreateLevelInput!): Level!
+    updateLevel(input: UpdateLevelInput!): Level!
+    deleteLevel(id: ID!): Boolean!
+    
+    createScenario(input: CreateScenarioInput!): Scenario!
+    updateScenario(input: UpdateScenarioInput!): Scenario!
+    deleteScenario(id: ID!): Boolean!
+    
+    createScenarioStep(input: CreateScenarioStepInput!): ScenarioStep!
+    updateScenarioStep(input: UpdateScenarioStepInput!): ScenarioStep!
+    deleteScenarioStep(id: ID!): Boolean!
+    
+    createMCQ(input: CreateMCQInput!): MCQ!
+    updateMCQ(input: UpdateMCQInput!): MCQ!
+    deleteMCQ(id: ID!): Boolean!
+    
+    createDialog(input: CreateDialogInput!): Dialog!
+    updateDialog(input: UpdateDialogInput!): Dialog!
+    deleteDialog(id: ID!): Boolean!
+    
+    createNPC(input: CreateNPCInput!): NPC!
+    updateNPC(input: UpdateNPCInput!): NPC!
+    deleteNPC(id: ID!): Boolean!
+    
+    createAudioAsset(input: CreateAudioAssetInput!): AudioAsset!
+    updateAudioAsset(input: UpdateAudioAssetInput!): AudioAsset!
+    deleteAudioAsset(id: ID!): Boolean!
+}
+

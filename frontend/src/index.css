@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-[#212121] text-white m-0 font-sans;
+  }
+}
+
+@layer components {
+  /* Game canvas container */
+  .game-canvas {
+    @apply border-2 border-gray-700 shadow-lg;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+  }
+  
+  /* Dialog overlay */
+  .dialog-overlay {
+    @apply fixed bottom-8 left-1/2 transform -translate-x-1/2 
+           bg-[#181818] border-2 border-gray-600 
+           rounded-none p-6 max-w-3xl w-11/12 shadow-2xl;
+  }
+  
+  /* MCQ overlay */
+  .mcq-overlay {
+    @apply fixed inset-0 flex items-center justify-center 
+           bg-black/70 backdrop-blur-sm;
+  }
+  
+  .mcq-container {
+    @apply bg-[#181818] border-2 border-gray-600 
+           rounded-none p-8 max-w-2xl w-11/12;
+  }
+  
+  /* Button styles */
+  .btn-primary {
+    @apply px-6 py-3 bg-gray-700 hover:bg-gray-600 
+           border-2 border-gray-500 rounded-none 
+           transition-colors duration-200 cursor-pointer;
+  }
+  
+  .btn-secondary {
+    @apply px-6 py-3 bg-gray-800 hover:bg-gray-700 
+           border-2 border-gray-600 rounded-none 
+           transition-colors duration-200 cursor-pointer;
+  }
+}
+
+/* Pixel-perfect rendering */
+canvas {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
