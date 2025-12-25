@@ -125,8 +125,10 @@ See "Running the Application" section above for step-by-step instructions.
    - Blue square labeled "Manager" (NPC)
    - Current step information at the top
    - Movement status indicator
-3. ✅ A dialog should appear from the Manager
-4. Click **Continue** to close the dialog
+   - **"📖 How to Play"** button in the top right
+3. ✅ Click **"📖 How to Play"** to see game instructions
+4. ✅ A dialog should appear from the Manager
+5. Click **Continue** to close the dialog
 
 #### 4. Movement Test
 1. After closing the dialog, movement should unlock
@@ -146,6 +148,107 @@ See "Running the Application" section above for step-by-step instructions.
 1. Click **Exit Game** to return to game list
 2. Click **Logout** button
 3. ✅ You should be redirected to login page
+
+---
+
+## 🎮 How to Play the Game
+
+### Getting Started
+1. **Login** with your player credentials
+2. **Select a game** from the game list
+3. The game will load and show your current level and scenario
+4. Click **"📖 How to Play"** button for detailed instructions
+
+### Game Controls
+
+#### Movement
+- **Arrow Keys** (↑ ↓ ← →) - Move your character
+- **WASD Keys** - Alternative movement controls
+  - W = Up
+  - A = Left
+  - S = Down
+  - D = Right
+
+#### Interactions
+- **Dialogs**: NPCs will automatically start conversations
+  - Click **"Continue"** button to advance through dialog
+  - Read carefully - dialogs contain important story information
+  
+- **MCQs (Multiple Choice Questions)**: Answer questions to progress
+  - Read the question carefully
+  - Select your answer from the options
+  - Click **"Submit Answer"** to confirm
+  - Your answer is saved and affects game progression
+
+### Understanding the Game Interface
+
+#### Top Section
+- **Level Name**: Current level you're playing
+- **Scenario Name**: Current scenario within the level
+- **Current Step**: The specific step you're on
+- **Step Type**: Type of step (ENTRY, DIALOG, MCQ, EXIT)
+- **Movement Status**: Shows if movement is LOCKED or FREE
+- **"📖 How to Play"** Button: Opens detailed instructions
+- **"Exit Game"** Button: Returns to game list
+
+#### Game Canvas
+- **Green Square (YOU)**: Your player character
+- **Blue Squares**: NPCs (Non-Player Characters)
+- **Movement**: Your character moves within the 800x600 pixel area
+
+#### Status Indicators
+- **Movement: LOCKED** (Red) - You cannot move (during dialogs/questions)
+- **Movement: FREE** (Green) - You can move freely
+- **Movement: HORIZONTAL_ONLY** - Can only move left/right
+- **Movement: VERTICAL_ONLY** - Can only move up/down
+
+### Game Progression
+
+1. **Levels**: Each game has multiple levels
+   - Complete all scenarios in a level to advance
+   - Levels are unlocked sequentially
+
+2. **Scenarios**: Each level has multiple scenarios
+   - Complete scenarios in order
+   - Each scenario usually contains one MCQ
+
+3. **Steps**: Each scenario has multiple steps
+   - **ENTRY**: Starting point of scenario
+   - **DIALOG**: Conversation with NPCs
+   - **MCQ**: Question to answer
+   - **EXIT**: Completion of scenario
+
+4. **Progress**: Your progress is saved automatically
+   - You can exit and return later
+   - Your position and answers are preserved
+
+### Tips for Playing
+
+✅ **Read Carefully**: Dialogs and questions contain important information  
+✅ **Think Before Answering**: MCQ answers affect your progression  
+✅ **Watch the Status**: Movement status tells you when you can move  
+✅ **Use Help Button**: Click "📖 How to Play" anytime for instructions  
+✅ **Progress is Saved**: You can exit and continue later  
+✅ **Complete Scenarios**: Finish all scenarios to advance levels  
+
+### Troubleshooting
+
+**Can't move?**
+- Check the Movement status indicator
+- Complete any open dialogs or questions first
+- Movement is locked during certain game events
+
+**Stuck on a question?**
+- Read the question and all options carefully
+- Select your answer and click "Submit Answer"
+- The game will progress automatically after submission
+
+**Need help?**
+- Click the **"📖 How to Play"** button anytime
+- Instructions cover all game mechanics
+- You can close and reopen instructions as needed
+
+---
 
 #### 7. GraphiQL Test (Optional)
 1. Open `http://localhost:8080/graphiql` in browser

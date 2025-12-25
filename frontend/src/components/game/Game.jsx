@@ -12,6 +12,7 @@ import PixelRenderer from './PixelRenderer';
 import PlayerController from './PlayerController';
 import DialogOverlay from './DialogOverlay';
 import MCQOverlay from './MCQOverlay';
+import InstructionsOverlay from './InstructionsOverlay';
 
 /**
  * Main Game Component
@@ -30,6 +31,7 @@ export default function Game() {
   const [showDialog, setShowDialog] = useState(false);
   const [showMCQ, setShowMCQ] = useState(false);
   const [submittingMCQ, setSubmittingMCQ] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   
   // Load or start game
   useEffect(() => {
@@ -253,12 +255,21 @@ export default function Game() {
                 </p>
               )}
             </div>
-            <button
-              onClick={() => navigate('/games')}
-              className="btn-secondary"
-            >
-              Exit Game
-            </button>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowInstructions(true)}
+                className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 transition-colors text-sm font-semibold"
+                title="Show game instructions"
+              >
+                📖 How to Play
+              </button>
+              <button
+                onClick={() => navigate('/games')}
+                className="btn-secondary"
+              >
+                Exit Game
+              </button>
+            </div>
           </div>
         </div>
         
@@ -294,12 +305,22 @@ export default function Game() {
         </div>
         
         {/* Controls Info */}
-        <div className="text-center text-sm text-gray-400">
+        <div className="text-center text-sm text-gray-400 mb-2">
           {movementLocked ? (
             <p>Movement is locked. Complete the current action to continue.</p>
           ) : (
             <p>Use Arrow Keys or WASD to move</p>
           )}
+        </div>
+        
+        {/* Quick Help Hint */}
+        <div className="text-center text-xs text-gray-500 mb-4">
+          <button
+            onClick={() => setShowInstructions(true)}
+            className="underline hover:text-gray-400 transition-colors"
+          >
+            Need help? Click here for instructions
+          </button>
         </div>
         
         {/* Player Controller */}
@@ -324,6 +345,11 @@ export default function Game() {
             onSubmit={handleMCQSubmit}
             disabled={submittingMCQ}
           />
+        )}
+        
+        {/* Instructions Overlay */}
+        {showInstructions && (
+          <InstructionsOverlay onClose={() => setShowInstructions(false)} />
         )}
       </div>
     </div>
