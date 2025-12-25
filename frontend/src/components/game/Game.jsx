@@ -49,25 +49,23 @@ export default function Game() {
         throw new Error(`Invalid user role: ${user.role}. Expected PLAYER or ADMIN.`);
       }
       
-      console.log('User authenticated:', user.username, 'Role:', user.role, 'Token present:', !!token);
-      
       const client = getAuthenticatedClient();
-      
-      // Convert gameId to number (GraphQL expects ID which is Long)
       const gameIdNum = parseInt(gameId, 10);
+      
       if (isNaN(gameIdNum)) {
         throw new Error(`Invalid game ID: ${gameId}`);
       }
       
       console.log('Initializing game with ID:', gameIdNum);
+      console.log('User:', user);
+      console.log('Token present:', !!token);
       
-      // Try to get existing game state
       try {
-        console.log('Trying to get existing game state...');
+        // Try to get existing progress
         const stateData = await client.request(GET_GAME_STATE_QUERY, {
           gameId: gameIdNum
         });
-        console.log('Got existing game state:', stateData);
+        console.log('Existing game state:', stateData);
         setGameState(stateData.getGameState);
         updatePlayerPositionFromState(stateData.getGameState);
       } catch (e) {
@@ -105,12 +103,41 @@ export default function Game() {
     }
   };
   
+  // Auto-advance helper for steps without dialogs
+  const handleStepAdvance = useCallback(async () => {
+    try {
+      const client = getAuthenticatedClient();
+      const gameIdNum = parseInt(gameId, 10);
+      const data = await client.request(TRIGGER_EVENT_MUTATION, {
+        input: {
+          gameId: gameIdNum,
+          condition: 'STEP_COMPLETION',
+          params: '{}'
+        }
+      });
+      setGameState(data.triggerEvent);
+    } catch (err) {
+      console.error('Error advancing step:', err);
+    }
+  }, [gameId, getAuthenticatedClient]);
+  
   // Check if dialog should be shown
   useEffect(() => {
+    console.log('Current step:', gameState?.currentStep);
     if (gameState?.currentStep?.dialog) {
+      console.log('Dialog found:', gameState.currentStep.dialog);
       setShowDialog(true);
+    } else if (gameState?.currentStep?.type === 'ENTRY' && !gameState?.currentStep?.dialog) {
+      // ENTRY step without dialog - auto-advance after a short delay
+      console.log('ENTRY step without dialog, auto-advancing...');
+      const timer = setTimeout(() => {
+        handleStepAdvance();
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowDialog(false);
     }
-  }, [gameState?.currentStep]);
+  }, [gameState?.currentStep, handleStepAdvance]);
   
   // Check if MCQ should be shown
   useEffect(() => {
@@ -146,21 +173,7 @@ export default function Game() {
   // Handle dialog close - advance to next step
   const handleDialogClose = async () => {
     setShowDialog(false);
-    
-    try {
-      const client = getAuthenticatedClient();
-      const gameIdNum = parseInt(gameId, 10);
-      const data = await client.request(TRIGGER_EVENT_MUTATION, {
-        input: {
-          gameId: gameIdNum,
-          condition: 'STEP_COMPLETION',
-          params: '{}'
-        }
-      });
-      setGameState(data.triggerEvent);
-    } catch (err) {
-      console.error('Error advancing game:', err);
-    }
+    await handleStepAdvance();
   };
   
   // Handle MCQ submission
@@ -325,8 +338,26 @@ export default function Game() {
             disabled={submittingMCQ}
           />
         )}
+        
+        {/* Fallback: Movement locked but no dialog/MCQ - show continue button */}
+        {movementLocked && !showDialog && !showMCQ && gameState?.currentStep && (
+          <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-[#181818] border-2 border-gray-600 p-6 max-w-2xl w-11/12">
+            <div className="text-center">
+              <p className="text-white text-lg mb-4">
+                {gameState.currentStep.type === 'ENTRY' 
+                  ? 'Starting scenario...' 
+                  : `Current step: ${gameState.currentStep.name}`}
+              </p>
+              <button
+                onClick={handleStepAdvance}
+                className="btn-primary"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
-
