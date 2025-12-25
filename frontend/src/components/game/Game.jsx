@@ -79,7 +79,7 @@ export default function Game() {
         // No existing progress, start new game
         console.log('Starting new game...');
         const startData = await client.request(START_GAME_MUTATION, {
-          gameId: gameIdNum
+          gameId: gameId
         });
         console.log('Game started:', startData);
         setGameState(startData.startGame);
