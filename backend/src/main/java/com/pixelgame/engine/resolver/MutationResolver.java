@@ -8,6 +8,7 @@ import com.pixelgame.engine.service.AuthService;
 import com.pixelgame.engine.service.GameEngineService;
 import com.pixelgame.engine.service.PlayerService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Controller;
 
 import java.util.Map;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class MutationResolver {
@@ -48,9 +50,20 @@ public class MutationResolver {
     // ===== Player Mutations =====
     
     @MutationMapping
-    @PreAuthorize("hasRole('PLAYER')")
+    @PreAuthorize("hasAuthority('ROLE_PLAYER') or hasAuthority('ROLE_ADMIN')")
     public GameState startGame(@Argument Long gameId, Authentication authentication) {
+        log.info("startGame called - Username: {}, Authorities: {}", 
+                authentication.getName(), 
+                authentication.getAuthorities());
         User user = authService.getCurrentUser(authentication.getName());
+        log.info("User role from DB: {}", user.getRole());
+        
+        // Additional check - if user doesn't have PLAYER role, throw error
+        if (user.getRole() != com.pixelgame.engine.model.enums.UserRole.PLAYER && 
+            user.getRole() != com.pixelgame.engine.model.enums.UserRole.ADMIN) {
+            throw new RuntimeException("User does not have permission to start games");
+        }
+        
         return gameEngineService.startGame(user, gameId);
     }
     
