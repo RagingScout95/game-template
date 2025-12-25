@@ -50,15 +50,17 @@ public class GameEngineService {
                     .findFirst()
                     .orElseThrow(() -> new RuntimeException("No active levels found"));
             
-            Scenario firstScenario = scenarioRepository.findByLevelIdAndActiveTrue(firstLevel.getId())
+            Scenario firstScenario = scenarioRepository.findByLevelIdOrderByOrderIndexAsc(firstLevel.getId())
                     .stream()
+                    .filter(Scenario::getActive)
                     .findFirst()
                     .orElse(null);
             
             ScenarioStep firstStep = null;
             if (firstScenario != null) {
-                firstStep = stepRepository.findByScenarioIdAndActiveTrue(firstScenario.getId())
+                firstStep = stepRepository.findByScenarioIdOrderByOrderIndexAsc(firstScenario.getId())
                         .stream()
+                        .filter(ScenarioStep::getActive)
                         .findFirst()
                         .orElse(null);
             }
@@ -102,9 +104,11 @@ public class GameEngineService {
             throw new RuntimeException("No active scenario");
         }
         
-        List<ScenarioStep> steps = stepRepository.findByScenarioIdAndActiveTrue(
+        List<ScenarioStep> steps = stepRepository.findByScenarioIdOrderByOrderIndexAsc(
                 progress.getCurrentScenario().getId()
-        );
+        ).stream()
+                .filter(ScenarioStep::getActive)
+                .toList();
         
         if (progress.getCurrentStep() == null) {
             // Start first step
@@ -138,17 +142,21 @@ public class GameEngineService {
             throw new RuntimeException("No active level");
         }
         
-        List<Scenario> scenarios = scenarioRepository.findByLevelIdAndActiveTrue(
+        List<Scenario> scenarios = scenarioRepository.findByLevelIdOrderByOrderIndexAsc(
                 progress.getCurrentLevel().getId()
-        );
+        ).stream()
+                .filter(Scenario::getActive)
+                .toList();
         
         if (progress.getCurrentScenario() == null) {
             // Start first scenario
             if (!scenarios.isEmpty()) {
                 progress.setCurrentScenario(scenarios.get(0));
-                List<ScenarioStep> steps = stepRepository.findByScenarioIdAndActiveTrue(
+                List<ScenarioStep> steps = stepRepository.findByScenarioIdOrderByOrderIndexAsc(
                         scenarios.get(0).getId()
-                );
+                ).stream()
+                        .filter(ScenarioStep::getActive)
+                        .toList();
                 progress.setCurrentStep(steps.isEmpty() ? null : steps.get(0));
             }
         } else {
@@ -158,9 +166,11 @@ public class GameEngineService {
                 Scenario nextScenario = scenarios.get(currentIndex + 1);
                 progress.setCurrentScenario(nextScenario);
                 
-                List<ScenarioStep> steps = stepRepository.findByScenarioIdAndActiveTrue(
+                List<ScenarioStep> steps = stepRepository.findByScenarioIdOrderByOrderIndexAsc(
                         nextScenario.getId()
-                );
+                ).stream()
+                        .filter(ScenarioStep::getActive)
+                        .toList();
                 progress.setCurrentStep(steps.isEmpty() ? null : steps.get(0));
             } else {
                 // Level complete, advance to next level
@@ -187,12 +197,17 @@ public class GameEngineService {
             Level nextLevel = levels.get(currentIndex + 1);
             progress.setCurrentLevel(nextLevel);
             
-            List<Scenario> scenarios = scenarioRepository.findByLevelIdAndActiveTrue(nextLevel.getId());
+            List<Scenario> scenarios = scenarioRepository.findByLevelIdOrderByOrderIndexAsc(nextLevel.getId())
+                    .stream()
+                    .filter(Scenario::getActive)
+                    .toList();
             if (!scenarios.isEmpty()) {
                 progress.setCurrentScenario(scenarios.get(0));
-                List<ScenarioStep> steps = stepRepository.findByScenarioIdAndActiveTrue(
+                List<ScenarioStep> steps = stepRepository.findByScenarioIdOrderByOrderIndexAsc(
                         scenarios.get(0).getId()
-                );
+                ).stream()
+                        .filter(ScenarioStep::getActive)
+                        .toList();
                 progress.setCurrentStep(steps.isEmpty() ? null : steps.get(0));
             }
         } else {
