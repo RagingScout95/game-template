@@ -113,13 +113,9 @@ export default function Game() {
   const handleStepAdvance = useCallback(async () => {
     try {
       const client = getAuthenticatedClient();
-      const gameIdNum = parseInt(gameId, 10);
-      if (isNaN(gameIdNum)) {
-        throw new Error('Invalid game ID');
-      }
       const data = await client.request(TRIGGER_EVENT_MUTATION, {
         input: {
-          gameId: gameIdNum,
+          gameId: gameId,
           condition: 'STEP_COMPLETION',
           params: '{}'
         }
@@ -166,14 +162,9 @@ export default function Game() {
     // In production, you'd want to batch these or update less frequently
     try {
       const client = getAuthenticatedClient();
-      const gameIdNum = parseInt(gameId, 10);
-      if (isNaN(gameIdNum)) {
-        console.error('Invalid game ID for position update');
-        return;
-      }
       await client.request(UPDATE_PLAYER_POSITION_MUTATION, {
         input: {
-          gameId: gameIdNum,
+          gameId: gameId,
           x: newX,
           y: newY
         }
@@ -207,13 +198,9 @@ export default function Game() {
       setShowMCQ(false);
       
       // Advance to next step
-      const gameIdNum = parseInt(gameId, 10);
-      if (isNaN(gameIdNum)) {
-        throw new Error('Invalid game ID');
-      }
       const data = await client.request(TRIGGER_EVENT_MUTATION, {
         input: {
-          gameId: gameIdNum,
+          gameId: gameId,
           condition: 'MCQ_ANSWERED',
           params: '{}'
         }

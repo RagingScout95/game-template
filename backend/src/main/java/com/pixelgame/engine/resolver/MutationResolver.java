@@ -22,6 +22,14 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MutationResolver {
     
+    private Long parseGameId(String gameId) {
+        try {
+            return Long.parseLong(gameId);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Invalid game ID format: " + gameId + ". Expected numeric ID.");
+        }
+    }
+    
     private final AuthService authService;
     private final GameEngineService gameEngineService;
     private final PlayerService playerService;
@@ -51,7 +59,7 @@ public class MutationResolver {
     
     @MutationMapping
     @PreAuthorize("hasAuthority('ROLE_PLAYER') or hasAuthority('ROLE_ADMIN')")
-    public GameState startGame(@Argument Long gameId, Authentication authentication) {
+    public GameState startGame(@Argument String gameId, Authentication authentication) {
         log.info("startGame called - Username: {}, Authorities: {}", 
                 authentication.getName(), 
                 authentication.getAuthorities());
@@ -64,7 +72,8 @@ public class MutationResolver {
             throw new RuntimeException("User does not have permission to start games");
         }
         
-        return gameEngineService.startGame(user, gameId);
+        Long gameIdLong = parseGameId(gameId);
+        return gameEngineService.startGame(user, gameIdLong);
     }
     
     @MutationMapping
@@ -86,7 +95,7 @@ public class MutationResolver {
     @PreAuthorize("hasRole('PLAYER')")
     public PlayerProgress updatePlayerPosition(@Argument Map<String, Object> input, Authentication authentication) {
         User user = authService.getCurrentUser(authentication.getName());
-        Long gameId = Long.parseLong(input.get("gameId").toString());
+        Long gameId = parseGameId(input.get("gameId").toString());
         double x = ((Number) input.get("x")).doubleValue();
         double y = ((Number) input.get("y")).doubleValue();
         
@@ -97,7 +106,7 @@ public class MutationResolver {
     @PreAuthorize("hasRole('PLAYER')")
     public GameState triggerEvent(@Argument Map<String, Object> input, Authentication authentication) {
         User user = authService.getCurrentUser(authentication.getName());
-        Long gameId = Long.parseLong(input.get("gameId").toString());
+        Long gameId = parseGameId(input.get("gameId").toString());
         
         // For now, just advance to next step
         // In full implementation, evaluate triggers and outcomes

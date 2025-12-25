@@ -34,9 +34,18 @@ public class QueryResolver {
     
     @QueryMapping
     @PreAuthorize("hasRole('PLAYER') or hasRole('ADMIN')")
-    public GameState getGameState(@Argument Long gameId, Authentication authentication) {
+    public GameState getGameState(@Argument String gameId, Authentication authentication) {
         User user = authService.getCurrentUser(authentication.getName());
-        return gameEngineService.getGameState(user, gameId);
+        Long gameIdLong = parseGameId(gameId);
+        return gameEngineService.getGameState(user, gameIdLong);
+    }
+    
+    private Long parseGameId(String gameId) {
+        try {
+            return Long.parseLong(gameId);
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Invalid game ID format: " + gameId + ". Expected numeric ID.");
+        }
     }
     
     @QueryMapping
